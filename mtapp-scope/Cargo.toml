@@ -1,0 +1,29 @@
+[package]
+authors = ["Pouya M. B. <pooyamb@gmail.com>"]
+name = "mtapp-scope"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+axum = "0.6"
+
+validator = { version = "0.16.0", features = ["derive"] }
+log = "0.4"
+
+sqlx = { version = "0.6.0", features = ["postgres", "runtime-tokio-rustls", "uuid", "chrono", "offline"] }
+sea-query = { version = "0.28", default-features = false, features = [
+    "backend-postgres",
+    "with-chrono",
+    "with-uuid",
+    "attr",
+] }
+sea-query-binder = { version = "0.3", features = ["sqlx-postgres", "with-chrono", "with-uuid"] }
+seaqs = "0"
+
+serde = "1"
+serde-querystring-axum = "0.1.0"
+json-response = "0"
+
+mtapp = "0"
+mtapp-auth = { version = "0" }

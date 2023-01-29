@@ -1,0 +1,7 @@
+{
+  "dependencies": [
+    "mtapp-user::20200629191917_create_table_users",
+    "mtapp-scope::20200823162413_create_table_scopes"
+  ],
+  "description": "Create grants table"
+}

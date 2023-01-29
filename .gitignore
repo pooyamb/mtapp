@@ -1,0 +1,8 @@
+/target
+*/target
+/__http_test
+/__docker-db
+docker-compose.yml
+
+.vscode
+.env

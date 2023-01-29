@@ -1,0 +1,23 @@
+[package]
+name = "mtapp-grant"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+axum = "0.6"
+
+clap = "4"
+log = "0.4"
+dialoguer = "0.10"
+
+sqlx = { version = "0.6.0", features = ["postgres", "runtime-tokio-rustls", "uuid", "chrono", "offline"] }
+
+serde = { version = "1.0.137", features = ["derive"] }
+json-response = "0"
+
+mtapp = "0"
+mtapp-auth = "0"
+mtapp-user = "0"
+mtapp-scope = "0"

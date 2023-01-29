@@ -1,0 +1,4 @@
+{
+  "dependencies": ["mtapp-user::20200629191917_create_table_users"],
+  "description": "Create sessions table"
+}

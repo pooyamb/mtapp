@@ -1,0 +1,20 @@
+[package]
+authors = ["Pouya M. B. <pooyamb@gmail.com>"]
+name = "mtapp"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+axum = "0.6"
+tower = "0.4"
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+
+clap = "4"
+cli-table = "0.4.7"
+indexmap = "1"
+
+sqlx = { version = "0.6.0", features = ["postgres", "runtime-tokio-rustls", "uuid", "chrono", "offline"] }
+actix-storage = "0.3"
+
+schemer-migration = "0"

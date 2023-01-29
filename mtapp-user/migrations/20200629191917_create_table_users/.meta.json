@@ -1,0 +1,4 @@
+{
+  "dependencies": ["mtapp::20200629191634_create_function_update_timestamp"],
+  "description": "Create users table"
+}

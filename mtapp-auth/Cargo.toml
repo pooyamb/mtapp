@@ -1,0 +1,23 @@
+[package]
+authors = ["Pouya M. B. <pooyamb@gmail.com>"]
+name = "mtapp-auth"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+axum = { version = "0.6", features = ["headers"] }
+axum-extra = { version = "0.4", features = ["cookie"] }
+tower = "0.4"
+
+uuid = { version = "1.1.2", features = ["serde", "v4"] }
+log = "0.4"
+jsonwebtoken = "8.1.1"
+secrecy = "0.8.0"
+
+actix-storage = "0.3"
+
+serde = { version = "1.0.137", features = ["derive"] }
+json-response = "0"
+
+mtapp = "0"
