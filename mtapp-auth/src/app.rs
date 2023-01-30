@@ -86,7 +86,7 @@ where
             Router::new()
                 .route("/login", post(login::<U, S, G>))
                 .route("/refresh", post(refresh::<S, G>))
-                .merge(Router::new().route("/logout", post(logout::<U, S>))),
+                .route("/logout", post(logout::<U, S>)),
         )
     }
 
@@ -95,7 +95,7 @@ where
             Router::new()
                 .route("/login", post(login::<U, S, G>))
                 .route("/refresh", post(refresh::<S, G>))
-                .merge(Router::new().route("/logout", post(logout::<U, S>))),
+                .route("/logout", post(logout::<U, S>)),
         )
     }
 
