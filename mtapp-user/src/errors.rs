@@ -36,20 +36,10 @@ impl From<sqlx::Error> for UserError {
                 match pg_error.constraint() {
                     Some("username_uniq") => UserError::DuplicateField("username"),
                     Some("email_uniq") => UserError::DuplicateField("email"),
-                    _ => {
-                        log::error!(
-                            "User App: Internal Error(UnknownConstaintError): {}",
-                            pg_error
-                        );
-
-                        UserError::UnknownConstaintError(pg_error)
-                    }
+                    _ => UserError::UnknownConstaintError(pg_error),
                 }
             }
-            _ => {
-                log::error!("User App: Internal Error(DatabaseError): {}", err);
-                UserError::DatabaseError(err)
-            }
+            _ => UserError::DatabaseError(err),
         }
     }
 }

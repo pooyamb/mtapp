@@ -7,7 +7,7 @@ use crate::models::User;
 fn extract_error(err: sqlx::Error) -> AuthError {
     match err {
         sqlx::Error::RowNotFound => AuthError::Credentials,
-        _ => AuthError::other(err),
+        _ => AuthError::DatabaseError(err),
     }
 }
 

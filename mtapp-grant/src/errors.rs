@@ -27,20 +27,10 @@ impl From<sqlx::Error> for GrantError {
                 // It's hacky and should be converted into a more general way possiblity converted to ValidationError
                 let pg_error = db_err.downcast::<sqlx::postgres::PgDatabaseError>();
                 match pg_error.constraint() {
-                    _ => {
-                        log::error!(
-                            "Grant App: Internal Error(UnknownConstaintError): {}",
-                            pg_error
-                        );
-
-                        GrantError::UnknownConstaintError(pg_error)
-                    }
+                    _ => GrantError::UnknownConstaintError(pg_error),
                 }
             }
-            _ => {
-                log::error!("User App: Internal Error(DatabaseError): {}", err);
-                GrantError::DatabaseError(err)
-            }
+            _ => GrantError::DatabaseError(err),
         }
     }
 }

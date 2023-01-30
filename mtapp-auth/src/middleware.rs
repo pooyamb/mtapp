@@ -42,7 +42,7 @@ pub async fn jwt_claims<B>(
             {
                 Ok(a) => a,
                 // Internal error
-                Err(e) => return (AuthError::other(e)).into_response(),
+                Err(e) => return (AuthError::StorageError(e)).into_response(),
             };
 
             if blacklisted {

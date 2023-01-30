@@ -9,7 +9,6 @@ edition = "2021"
 axum = "0.6"
 
 clap = "4"
-log = "0.4"
 dialoguer = "0.10"
 
 sqlx = { version = "0.6.0", features = ["postgres", "runtime-tokio-rustls", "uuid", "chrono", "offline"] }

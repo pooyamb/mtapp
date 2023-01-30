@@ -25,7 +25,11 @@ pub enum AuthError {
     )]
     Permission,
     #[internal_error]
-    InternalError,
+    Configuration,
+    #[internal_error]
+    StorageError(StorageError),
+    #[internal_error]
+    DatabaseError(sqlx::Error),
     #[internal_error]
     Other(Box<dyn Error + Send>),
 }
@@ -44,8 +48,6 @@ impl fmt::Display for AuthError {
 
 impl From<StorageError> for AuthError {
     fn from(err: StorageError) -> Self {
-        log::error!("Auth App: Internal Error(StorageError): {}", err);
-
-        AuthError::InternalError
+        AuthError::StorageError(err)
     }
 }

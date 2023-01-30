@@ -23,10 +23,7 @@ impl From<sqlx::Error> for SessionError {
     fn from(err: sqlx::Error) -> Self {
         match err {
             sqlx::Error::RowNotFound => SessionError::NotFound,
-            _ => {
-                log::error!("Session App: Internal Error(DatabaseError): {}", err);
-                SessionError::DatabaseError(err)
-            }
+            _ => SessionError::DatabaseError(err),
         }
     }
 }

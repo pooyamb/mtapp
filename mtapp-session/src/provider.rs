@@ -8,7 +8,7 @@ use crate::models::Session;
 fn extract_error(err: sqlx::Error) -> AuthError {
     match err {
         sqlx::Error::RowNotFound => AuthError::BadToken.into(),
-        _ => AuthError::other(err),
+        _ => AuthError::DatabaseError(err),
     }
 }
 pub struct Provider;

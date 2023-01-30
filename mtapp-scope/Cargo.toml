@@ -9,7 +9,6 @@ publish = false
 axum = "0.6"
 
 validator = { version = "0.16.0", features = ["derive"] }
-log = "0.4"
 
 sqlx = { version = "0.6.0", features = ["postgres", "runtime-tokio-rustls", "uuid", "chrono", "offline"] }
 sea-query = { version = "0.28", default-features = false, features = [

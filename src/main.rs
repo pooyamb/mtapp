@@ -16,6 +16,8 @@ use sqlx::{
 #[tokio::main]
 async fn main() {
     dotenvy::dotenv().ok();
+    env_logger::init();
+
     let db = get_db().await;
     let storage = get_storage();
     let secret = env::var("APP_SECRET").unwrap();

@@ -30,20 +30,10 @@ impl From<sqlx::Error> for ScopeError {
                 let pg_error = db_err.downcast::<sqlx::postgres::PgDatabaseError>();
                 match pg_error.constraint() {
                     Some("name_uniq") => ScopeError::DuplicateField("name"),
-                    _ => {
-                        log::error!(
-                            "Scope App: Internal Error(UnknownConstaintError): {}",
-                            pg_error
-                        );
-
-                        ScopeError::UnknownConstaintError(pg_error)
-                    }
+                    _ => ScopeError::UnknownConstaintError(pg_error),
                 }
             }
-            _ => {
-                log::error!("Scope App: Internal Error(DatabaseError): {}", err);
-                ScopeError::DatabaseError(err)
-            }
+            _ => ScopeError::DatabaseError(err),
         }
     }
 }

@@ -36,7 +36,7 @@ fn expand_derive_enum(
     let gen = quote! {
         impl #impl_generics json_response::__private::IntoResponse for #name #ty_generics #where_clause {
             fn into_response(self) -> json_response::__private::Response {
-                match &self{
+                match self{
                     #json_errors
                 }
             }

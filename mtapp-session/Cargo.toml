@@ -9,8 +9,6 @@ publish = false
 axum = "0.6"
 axum-client-ip = "0.3"
 
-log = "0.4"
-
 sqlx = { version = "0.6.0", features = ["postgres", "runtime-tokio-rustls", "uuid", "chrono", "offline"] }
 sea-query = { version = "^0", default-features = false, features = [
     "backend-postgres",

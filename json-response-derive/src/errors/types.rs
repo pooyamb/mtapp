@@ -5,10 +5,19 @@ use quote::quote;
 use quote::{ToTokens, TokenStreamExt};
 use syn::{punctuated::Punctuated, token::Comma, Attribute, Ident, Variant};
 
+/// Type of error enum variants supported
 pub enum JsonErrorKind {
+    /// A request error, without any extra information.
+    /// Is represented as a variant with no value
     NaiveRequest,
+    /// A request error, with any extra information
+    /// Is represented as a tuple variant with one field
     Request,
+    /// An internal error, with any extra information
+    /// Is represented as a variant with no value
     NaiveInternal,
+    /// An internal error, with any extra information
+    /// Is represented as a tuple variant with one field
     Internal,
 }
 
@@ -127,13 +136,20 @@ impl JsonError {
                 quote! {
                     #type_ident::#kind(err) => json_response::JsonError{
                         #(#fields: #values),*,
-                        content: err.clone(),
+                        content: err,
                         ..json_response::JsonError::default()
                     }.into_response()
                 }
             }
             JsonErrorKind::NaiveInternal => quote! {
                 #type_ident::#kind => {
+                    /// Log the error
+                    json_response::__private::error!(
+                        "{}::{}",
+                        stringify!(#type_ident),
+                        stringify!(#kind)
+                    );
+
                     json_response::JsonError{
                         status: json_response::__private::StatusCode::INTERNAL_SERVER_ERROR,
                         code: "50000 internal-error".into(),
@@ -144,6 +160,14 @@ impl JsonError {
             },
             JsonErrorKind::Internal => quote! {
                 #type_ident::#kind(err) => {
+                    /// Log the error
+                    json_response::__private::error!(
+                        "{}::{} {}",
+                        stringify!(#type_ident),
+                        stringify!(#kind),
+                        err
+                    );
+
                     json_response::JsonError{
                         status: json_response::__private::StatusCode::INTERNAL_SERVER_ERROR,
                         code: "50000 internal-error".into(),

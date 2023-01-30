@@ -127,12 +127,12 @@ impl<S: Sync> FromRequestParts<S> for ClaimsModify {
         let config = parts
             .extensions
             .get::<AuthConfig>()
-            .ok_or(AuthError::InternalError)?
+            .ok_or(AuthError::Configuration)?
             .clone();
         let storage = parts
             .extensions
             .get::<Storage>()
-            .ok_or(AuthError::InternalError)?
+            .ok_or(AuthError::Configuration)?
             .clone();
 
         Ok(Self {

@@ -10,4 +10,5 @@ pub type JsonResult<T, E = ()> = Result<JsonResponse<T>, JsonError<E>>;
 pub mod __private {
     pub use axum::http::StatusCode;
     pub use axum::response::{IntoResponse, Response};
+    pub use log::error;
 }

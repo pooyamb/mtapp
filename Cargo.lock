@@ -579,6 +579,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a357d28ed41a50f9c765dbfe56cbc04a64e53e5fc58ba79fbc34c10ef3df831f"
 
 [[package]]
+name = "env_logger"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "85cdab6a89accf66733ad5a1693a4dcced6aeff64602b634530dd73c1f3ee9f0"
+dependencies = [
+ "humantime",
+ "is-terminal",
+ "log",
+ "regex",
+ "termcolor",
+]
+
+[[package]]
 name = "errno"
 version = "0.2.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -892,6 +905,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c4a1e36c821dbe04574f602848a19f742f4fb3c98d40449f11bcad18d6b17421"
 
 [[package]]
+name = "humantime"
+version = "2.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9a3a5bfb195931eeb336b2a7b4d761daec841b97f947d34394601737a7bba5e4"
+
+[[package]]
 name = "hyper"
 version = "0.14.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1048,6 +1067,7 @@ version = "0.1.0"
 dependencies = [
  "axum",
  "json-response-derive",
+ "log",
  "serde",
  "serde_json",
 ]
@@ -1281,10 +1301,10 @@ dependencies = [
  "axum-extra",
  "json-response",
  "jsonwebtoken",
- "log",
  "mtapp",
  "secrecy",
  "serde",
+ "sqlx",
  "tower",
  "uuid",
 ]
@@ -1297,7 +1317,6 @@ dependencies = [
  "clap",
  "dialoguer",
  "json-response",
- "log",
  "mtapp",
  "mtapp-auth",
  "mtapp-scope",
@@ -1312,7 +1331,6 @@ version = "0.1.0"
 dependencies = [
  "axum",
  "json-response",
- "log",
  "mtapp",
  "mtapp-auth",
  "sea-query",
@@ -1331,7 +1349,6 @@ dependencies = [
  "axum",
  "axum-client-ip",
  "json-response",
- "log",
  "mtapp",
  "mtapp-auth",
  "sea-query",
@@ -1351,7 +1368,6 @@ dependencies = [
  "clap",
  "dialoguer",
  "json-response",
- "log",
  "mtapp",
  "mtapp-auth",
  "mtapp-scope",
@@ -1375,6 +1391,7 @@ dependencies = [
  "axum",
  "clap",
  "dotenvy",
+ "env_logger",
  "mtapp",
  "mtapp-auth",
  "mtapp-grant",
