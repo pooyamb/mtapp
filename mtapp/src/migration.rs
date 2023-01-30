@@ -1,7 +1,6 @@
 use std::{borrow::Cow, collections::HashMap};
 
 use sqlx::PgPool;
-use tokio::runtime::Handle;
 
 use schemer_migration::{AppMigration, Migration, Migrator, PgAdapter};
 
@@ -15,18 +14,14 @@ pub(crate) async fn run_migrations(
     db: PgPool,
     apps: impl Iterator<Item = &mut Box<dyn App + Send + Sync>>,
 ) {
-    let mut adapter = PgAdapter::new(db.clone(), Handle::current());
+    let adapter = PgAdapter::new(db.clone());
 
     adapter
         .create_migration_table()
         .await
         .expect("Couldn't create the migration table");
-    adapter
-        .load()
-        .await
-        .expect("Couldn't load applied migrations.");
 
-    let mut migrator = Migrator::new(adapter);
+    let mut migrator = Migrator::new_async(adapter);
     let mut id_name_map = HashMap::new();
     let mut migrations = Vec::new();
 
@@ -53,5 +48,5 @@ pub(crate) async fn run_migrations(
 
     migrator.register_multiple(migrations.into_iter()).unwrap();
 
-    migrator.up(None).unwrap();
+    migrator.up_async(None).await.unwrap();
 }

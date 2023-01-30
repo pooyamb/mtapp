@@ -2,9 +2,8 @@ use std::{borrow::Cow, collections::HashMap};
 
 use clap::ArgMatches;
 use cli_table::{print_stdout, Cell, Style, Table};
-use schemer::{Adapter, Migrator};
+use schemer::Migrator;
 use sqlx::PgPool;
-use tokio::runtime::Handle;
 
 use schemer_migration::{AppMigration, Migration, MigrationId, PgAdapter};
 
@@ -14,18 +13,14 @@ pub async fn run_migrations<T: Migration + 'static>(
     db: PgPool,
     migrations: impl Iterator<Item = (Cow<'static, str>, T)>,
 ) {
-    let mut adapter = PgAdapter::new(db.clone(), Handle::current());
+    let adapter = PgAdapter::new(db.clone());
 
     adapter
         .create_migration_table()
         .await
         .expect("Couldn't create the migration table");
-    adapter
-        .load()
-        .await
-        .expect("Couldn't load applied migrations.");
 
-    let mut migrator = Migrator::new(adapter);
+    let mut migrator = Migrator::new_async(adapter);
     let mut id_name_map = HashMap::new();
 
     let migrations = migrations
@@ -40,9 +35,9 @@ pub async fn run_migrations<T: Migration + 'static>(
 
     if let Some(name) = m.get_one::<String>("name") {
         let id = MigrationId::try_from(name).expect("Invalid migration name is given");
-        migrator.up(Some(id.clone())).unwrap();
+        migrator.up_async(Some(id.clone())).await.unwrap();
     } else {
-        migrator.up(None).unwrap();
+        migrator.up_async(None).await.unwrap();
     }
 }
 
@@ -50,29 +45,25 @@ pub async fn list_migrations<T: Migration + 'static>(
     db: PgPool,
     migrations: impl Iterator<Item = (Cow<'static, str>, T)>,
 ) {
-    let mut adapter = PgAdapter::new(db.clone(), Handle::current());
+    let adapter = PgAdapter::new(db.clone());
 
     adapter
         .create_migration_table()
         .await
         .expect("Couldn't create the migration table");
-    adapter
-        .load()
-        .await
-        .expect("Couldn't load applied migrations.");
 
-    let applied_ids = adapter
-        .applied_migrations()
+    let applied_migrations = adapter
+        .applied_migrations_data()
+        .await
         .expect("Can't happen, method returns Ok");
-    let applied_migrations = adapter.into_applied_migrations();
 
     let mut table = Vec::new();
-    for migration in applied_migrations.into_iter() {
+    for migration in applied_migrations.iter() {
         table.push(vec![
             "Yes".cell(),
-            migration.app.cell(),
-            migration.name.cell(),
-            migration.description.cell(),
+            (&migration.app).cell(),
+            (&migration.name).cell(),
+            (&migration.description).cell(),
             migration.created_at.to_rfc2822().cell(),
         ])
     }
@@ -82,10 +73,9 @@ pub async fn list_migrations<T: Migration + 'static>(
         migrations
             .into_iter()
             .filter(|migration| {
-                !applied_ids.contains(&MigrationId::new(
-                    migration.0.to_string(),
-                    migration.1.name().to_string(),
-                ))
+                !applied_migrations
+                    .iter()
+                    .any(|m| migration.0 == m.app && migration.1.name() == m.name)
             })
             .map(|migration| AppMigration::new(migration.0, migration.1))
             .collect::<Vec<_>>(),
@@ -121,18 +111,14 @@ pub async fn revert_migrations<T: Migration + 'static>(
     db: PgPool,
     migrations: impl Iterator<Item = (Cow<'static, str>, T)>,
 ) {
-    let mut adapter = PgAdapter::new(db.clone(), Handle::current());
+    let adapter = PgAdapter::new(db.clone());
 
     adapter
         .create_migration_table()
         .await
         .expect("Couldn't create the migration table");
-    adapter
-        .load()
-        .await
-        .expect("Couldn't load applied migrations.");
 
-    let mut migrator = Migrator::new(adapter);
+    let mut migrator = Migrator::new_async(adapter);
     let mut id_name_map = HashMap::new();
 
     let migrations = migrations
@@ -147,8 +133,8 @@ pub async fn revert_migrations<T: Migration + 'static>(
 
     if let Some(name) = m.get_one::<String>("name") {
         let id = MigrationId::try_from(name).expect("Invalid migration name is given");
-        migrator.down(Some(id.clone())).unwrap();
+        migrator.down_async(Some(id.clone())).await.unwrap();
     } else {
-        migrator.down(None).unwrap();
+        migrator.down_async(None).await.unwrap();
     }
 }

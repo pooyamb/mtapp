@@ -1784,19 +1784,19 @@ dependencies = [
 [[package]]
 name = "schemer"
 version = "0.2.1"
-source = "git+https://github.com/pooyamb/schemer.git#487da0c00d09b5abd9683f78f5fb6eaa6b563464"
+source = "git+https://github.com/pooyamb/schemer.git?branch=async#49257191efb0d250d95a2d73cdd277c5eead3841"
 dependencies = [
+ "async-trait",
  "daggy",
  "indexmap",
- "log",
  "thiserror",
- "uuid",
 ]
 
 [[package]]
 name = "schemer-migration"
 version = "0.1.0"
 dependencies = [
+ "async-trait",
  "cargo_toml",
  "clap",
  "cli-table",

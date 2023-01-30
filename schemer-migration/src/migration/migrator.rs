@@ -1,12 +1,11 @@
-use std::{collections::HashSet, thread};
+use std::collections::HashSet;
 
-use schemer::Adapter;
+use schemer::AsyncAdapter;
 use sqlx::{
     postgres::PgArguments,
     types::chrono::{DateTime, Local},
     Arguments, Executor, FromRow, PgPool,
 };
-use tokio::runtime::Handle;
 
 use super::{def::AppMigration, id::MigrationId};
 
@@ -43,17 +42,11 @@ pub struct AppliedMigration {
 
 pub struct PgAdapter {
     pool: PgPool,
-    handle: Handle,
-    applied: Vec<AppliedMigration>,
 }
 
 impl PgAdapter {
-    pub fn new(pool: PgPool, handle: Handle) -> Self {
-        Self {
-            pool,
-            handle,
-            applied: Vec::new(),
-        }
+    pub fn new(pool: PgPool) -> Self {
+        Self { pool }
     }
 
     pub async fn create_migration_table(&self) -> Result<(), sqlx::Error> {
@@ -61,88 +54,59 @@ impl PgAdapter {
         Ok(())
     }
 
-    pub async fn load(&mut self) -> Result<(), sqlx::Error> {
+    pub async fn applied_migrations_data(&self) -> Result<Vec<AppliedMigration>, sqlx::Error> {
         let res = self
             .pool
             .acquire()
             .await?
             .fetch_all(SELECT_MIGRATIONS)
             .await?;
-        self.applied = res
+        Ok(res
             .iter()
             .map(|r| AppliedMigration::from_row(r).expect("Migration table definition is wrong"))
-            .collect::<Vec<_>>();
-        Ok(())
-    }
-
-    pub fn into_applied_migrations(self) -> Vec<AppliedMigration> {
-        self.applied
+            .collect())
     }
 }
 
-impl Adapter<MigrationId> for PgAdapter {
+#[async_trait::async_trait]
+impl AsyncAdapter<MigrationId> for PgAdapter {
     type MigrationType = AppMigration;
 
     type Error = sqlx::Error;
 
-    fn applied_migrations(&mut self) -> Result<HashSet<MigrationId>, Self::Error> {
+    async fn applied_migrations(&mut self) -> Result<HashSet<MigrationId>, Self::Error> {
         Ok(self
-            .applied
-            .iter()
+            .applied_migrations_data()
+            .await?
+            .into_iter()
             .map(|m| MigrationId::new(m.app.clone(), m.name.clone()))
             .collect())
     }
 
-    fn apply_migration(&mut self, m: &Self::MigrationType) -> Result<(), Self::Error> {
-        let handle = self.handle.clone();
-        let pool = self.pool.clone();
-        let migration = m.clone();
-
+    async fn apply_migration(&mut self, m: &Self::MigrationType) -> Result<(), Self::Error> {
         println!("Applying migration {}::{}...", m.app, m.migration.name());
 
-        // TODO: Don't spawn threads for each migration
-        let r = thread::spawn(move || {
-            handle.block_on(async {
-                let mut args = PgArguments::default();
-                args.add(migration.name());
-                args.add(migration.app());
-                args.add(migration.description());
+        let mut args = PgArguments::default();
+        args.add(m.name());
+        args.add(m.app());
+        args.add(m.description());
 
-                let mut trans = pool.begin().await?;
-                trans.execute((INSERT_MIGRATION, Some(args))).await?;
-                trans.execute(migration.up().as_ref()).await?;
-                trans.commit().await
-            })
-        })
-        .join()
-        .expect("Coudn't spawn a thread");
-
-        r
+        let mut trans = self.pool.begin().await?;
+        trans.execute((INSERT_MIGRATION, Some(args))).await?;
+        trans.execute(m.up().as_ref()).await?;
+        trans.commit().await
     }
 
-    fn revert_migration(&mut self, m: &Self::MigrationType) -> Result<(), Self::Error> {
-        let handle = self.handle.clone();
-        let pool = self.pool.clone();
-        let migration = m.clone();
-
+    async fn revert_migration(&mut self, m: &Self::MigrationType) -> Result<(), Self::Error> {
         println!("Reverting migration {}::{}...", m.app, m.migration.name());
 
-        // TODO: Don't spawn threads for each migration
-        let r = thread::spawn(move || {
-            handle.block_on(async {
-                let mut args = PgArguments::default();
-                args.add(migration.name());
-                args.add(migration.app());
+        let mut args = PgArguments::default();
+        args.add(m.name());
+        args.add(m.app());
 
-                let mut trans = pool.begin().await?;
-                trans.execute((DELETE_MIGRATION, Some(args))).await?;
-                trans.execute(migration.down().as_ref()).await?;
-                trans.commit().await
-            })
-        })
-        .join()
-        .expect("Coudn't spawn a thread");
-
-        r
+        let mut trans = self.pool.begin().await?;
+        trans.execute((DELETE_MIGRATION, Some(args))).await?;
+        trans.execute(m.down().as_ref()).await?;
+        trans.commit().await
     }
 }
