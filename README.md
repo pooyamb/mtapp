@@ -23,7 +23,7 @@ Do the basic rust installation and edit the .env.sample file.
 To run the migrations use:
 
 ```
-cargo run -p schemer-migration run
+cargo migrate
 ```
 
 To run the web app use the normal:
