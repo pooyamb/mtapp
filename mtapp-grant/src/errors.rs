@@ -1,4 +1,4 @@
-use std::{error::Error, fmt};
+use std::fmt;
 
 use axum::http::StatusCode;
 use json_response::ApiError;
@@ -7,14 +7,10 @@ use json_response::ApiError;
 pub enum GrantError {
     #[request_error(status=StatusCode::NOT_FOUND, code="404001 resource-not-found")]
     NotFound,
-    #[request_error(status=StatusCode::CONFLICT, code="409001 already-exist")]
-    DuplicateField(&'static str),
     #[internal_error]
     DatabaseError(sqlx::Error),
     #[internal_error]
     UnknownConstaintError(Box<sqlx::postgres::PgDatabaseError>),
-    #[internal_error]
-    Other(Box<dyn Error + Send>),
 }
 
 impl fmt::Display for GrantError {
