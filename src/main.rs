@@ -30,7 +30,7 @@ async fn main() {
         .mount_on("/auth", auth_app)
         .mount_on("/scopes", scope_app)
         .mount_on("/users", user_app)
-        .mount_on("/users", grant_app)
+        .mount_on("/grants", grant_app)
         .mount_on("/sessions", session_app)
         .storage(storage)
         .db(db);
