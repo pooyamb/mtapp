@@ -53,7 +53,7 @@ impl App for GrantApp {
         )
     }
 
-    async fn clap_run(&mut self, matches: &ArgMatches, ext: &mut Extensions) {
+    async fn clap_run(&mut self, matches: &ArgMatches, ext: &Extensions) {
         let pool = ext.get::<PgPool>().unwrap().clone();
         let recv_username = matches
             .subcommand()

@@ -1,10 +1,11 @@
 use axum::{
+    http::Extensions,
     middleware::from_fn,
     routing::{get, post},
     Router,
 };
 use clap::{Arg, Command};
-use mtapp::{include_migrations_dir, App, Migration};
+use mtapp::{include_migrations_dir, App, Configuration, Migration};
 use mtapp_auth::{ClaimCheck, Claims};
 use sqlx::PgPool;
 
@@ -24,6 +25,10 @@ impl UserApp {
 impl App for UserApp {
     fn name(&self) -> &'static str {
         "mtapp-user"
+    }
+
+    fn configure(&mut self, cfg: &mut Configuration) {
+        cfg.base_router(|router| router.layer(from_fn(user_ban_check)));
     }
 
     fn public_routes(&mut self) -> Option<Router> {
@@ -75,7 +80,7 @@ impl App for UserApp {
         )
     }
 
-    async fn clap_run(&mut self, matches: &clap::ArgMatches, ext: &mut axum::http::Extensions) {
+    async fn clap_run(&mut self, matches: &clap::ArgMatches, ext: &Extensions) {
         let pool = ext
             .get::<PgPool>()
             .expect("Inserted into extensions by reactor")
@@ -92,9 +97,5 @@ impl App for UserApp {
                 unreachable!()
             }
         }
-    }
-
-    fn _mod_base_router(&self, router: Router) -> Router {
-        router.layer(from_fn(user_ban_check))
     }
 }

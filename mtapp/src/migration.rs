@@ -10,10 +10,7 @@ pub(crate) fn get_local_migrations() -> Option<Vec<Box<dyn Migration>>> {
     crate::include_migrations_dir!("./migrations" => "crate")
 }
 
-pub(crate) async fn run_migrations(
-    db: PgPool,
-    apps: impl Iterator<Item = &mut Box<dyn App + Send + Sync>>,
-) {
+pub(crate) async fn run_migrations(db: PgPool, apps: impl Iterator<Item = &mut Box<dyn App>>) {
     let adapter = PgAdapter::new(db.clone());
 
     adapter

@@ -1,11 +1,10 @@
 use std::marker::PhantomData;
 use std::time::Duration;
 
-use axum::http::Extensions;
 use axum::middleware::from_fn;
 use axum::routing::post;
 use axum::Router;
-use mtapp::App;
+use mtapp::{App, Configuration};
 use secrecy::{ExposeSecret, Secret};
 
 use crate::handlers::*;
@@ -81,6 +80,14 @@ where
         "auth"
     }
 
+    fn configure(&mut self, cfg: &mut Configuration) {
+        let config = self.config.clone();
+        cfg.global_state(move |ext| {
+            ext.insert(config.clone());
+        })
+        .base_router(|router| router.layer(from_fn(jwt_claims)));
+    }
+
     fn public_routes(&mut self) -> Option<Router> {
         Some(
             Router::new()
@@ -97,13 +104,5 @@ where
                 .route("/refresh", post(refresh::<S, G>))
                 .route("/logout", post(logout::<U, S>)),
         )
-    }
-
-    fn data_register(&self, ext: &mut Extensions) {
-        ext.insert(self.config.clone());
-    }
-
-    fn _mod_base_router(&self, router: Router) -> Router {
-        router.layer(from_fn(jwt_claims))
     }
 }

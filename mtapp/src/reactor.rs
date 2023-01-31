@@ -1,6 +1,4 @@
 use std::{
-    any::TypeId,
-    net::{IpAddr, Ipv4Addr, SocketAddr},
     sync::Arc,
     task::{Context, Poll},
 };
@@ -8,19 +6,19 @@ use std::{
 use actix_storage::Storage;
 use axum::{
     http::{Extensions, Request},
-    routing::IntoMakeService,
     Router,
 };
-use clap::arg;
+use clap::{ArgMatches, Command};
 use indexmap::IndexMap;
 use sqlx::PgPool;
 use tower::Service;
 
-use crate::app::App;
+use crate::app::{App, Configuration};
 
 pub struct Reactor<D, S> {
     name: &'static str,
-    map: IndexMap<TypeId, (&'static str, Box<dyn App + Send + Sync>)>,
+    map: IndexMap<&'static str, Box<dyn App>>,
+    cfgs: Vec<Configuration>,
 
     db: D,
     storage: S,
@@ -31,6 +29,8 @@ impl Reactor<(), ()> {
         Self {
             name,
             map: IndexMap::new(),
+            cfgs: Vec::new(),
+
             db: (),
             storage: (),
         }
@@ -38,9 +38,9 @@ impl Reactor<(), ()> {
 
     pub fn mount_on<A>(mut self, path: &'static str, app: A) -> Self
     where
-        A: App + Send + Sync + 'static,
+        A: App + 'static,
     {
-        self.map.insert(TypeId::of::<A>(), (path, Box::new(app)));
+        self.map.insert(path, Box::new(app));
         self
     }
 }
@@ -50,6 +50,8 @@ impl<D, S> Reactor<D, S> {
         Reactor {
             name: self.name,
             map: self.map,
+            cfgs: self.cfgs,
+
             db,
             storage: self.storage,
         }
@@ -59,70 +61,70 @@ impl<D, S> Reactor<D, S> {
         Reactor {
             name: self.name,
             map: self.map,
+            cfgs: self.cfgs,
+
             db: self.db,
             storage,
         }
     }
-}
 
-impl Reactor<PgPool, Storage> {
-    pub async fn run(mut self) {
-        let mut clap_app = clap::Command::new(self.name)
-            .arg(arg!(--host <HOST> "Run on host"))
-            .arg(arg!(--port <PORT> "Run on port"));
-
-        clap_app =
-            clap_app.subcommand(clap::Command::new("migrate").about("Apply all the migrations"));
-
-        for (_, app) in self.map.values() {
+    pub fn clap_defs(&self) -> Vec<Command> {
+        let mut commands = Vec::new();
+        for app in self.map.values() {
             if let Some(cmd) = app.clap_def() {
-                clap_app = clap_app.subcommand(cmd.name(app.name()));
+                commands.push(cmd.name(app.name()));
             }
         }
-
-        let m = clap_app.get_matches();
-
-        if let Some((name, sm)) = m.subcommand() {
-            let mut ext = Extensions::new();
-            self.register_states(&mut ext);
-
-            match name {
-                "migrate" => {
-                    crate::migration::run_migrations(
-                        self.db,
-                        self.map.values_mut().map(|r| &mut r.1),
-                    )
-                    .await;
-                }
-                _ => {
-                    for (_, app) in self.map.values_mut() {
-                        if app.name() == name {
-                            app.clap_run(sm, &mut ext).await
-                        }
-                    }
-                }
-            }
-        } else {
-            let host: IpAddr = m
-                .get_one("host")
-                .cloned()
-                .and_then(|v: &String| v.parse().ok())
-                .unwrap_or(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)));
-            let port: u16 = m
-                .get_one("port")
-                .and_then(|v: &String| v.parse().ok())
-                .unwrap_or(3000);
-            // run the web server
-            axum::Server::bind(&SocketAddr::new(host, port))
-                .serve(self.into_make_service())
-                .await
-                .expect("Failed to start the server");
-        }
+        commands
     }
 }
 
 impl Reactor<PgPool, Storage> {
-    pub fn into_make_service(mut self) -> IntoMakeService<Router> {
+    pub async fn run_migrations(&mut self) {
+        crate::migration::run_migrations(self.db.clone(), self.map.values_mut()).await;
+    }
+
+    pub async fn run_command(mut self, subcommand: &str, args: &ArgMatches) {
+        let ext = self.get_extensions();
+        for app in self.map.values_mut() {
+            if app.name() == subcommand {
+                app.clap_run(args, &ext).await
+            }
+        }
+    }
+
+    pub fn get_extensions(&mut self) -> Extensions {
+        self.cfgs = self
+            .map
+            .values_mut()
+            .map(|app| {
+                let mut cfg = Configuration::new();
+                app.configure(&mut cfg);
+                cfg
+            })
+            .collect();
+
+        let mut ext = Extensions::new();
+        for cfg in self.cfgs.iter() {
+            cfg.configure_global_state(&mut ext)
+        }
+
+        ext.insert(self.storage.clone());
+        ext.insert(self.db.clone());
+        ext
+    }
+
+    pub fn into_router(mut self) -> Router {
+        self.cfgs = self
+            .map
+            .values_mut()
+            .map(|app| {
+                let mut cfg = Configuration::new();
+                app.configure(&mut cfg);
+                cfg
+            })
+            .collect();
+
         let public = self.public_router();
         let internal = self.internal_router();
 
@@ -130,24 +132,32 @@ impl Reactor<PgPool, Storage> {
         router = router.merge(Router::new().nest("/public", public));
         router = router.merge(Router::new().nest("/internal", internal));
 
-        for (_, app) in self.map.values_mut().rev() {
-            router = app._mod_base_router(router);
+        for cfg in self.cfgs.iter() {
+            router = cfg.configure_base_router(router);
         }
 
-        router
-            .layer(ReactorLayer(Arc::new(self)))
-            .into_make_service()
+        router.layer(ReactorLayer(ReactorLayerInner {
+            db: self.db,
+            storage: self.storage,
+            state_fns: Arc::new(
+                self.cfgs
+                    .into_iter()
+                    .map(|v| v.into_global_state())
+                    .flatten()
+                    .collect(),
+            ),
+        }))
     }
 
     fn public_router(&mut self) -> Router {
         let mut router = Router::new();
-        for (path, app) in self.map.values_mut() {
+        for (path, app) in self.map.iter_mut() {
             if let Some(routes) = app.public_routes() {
                 router = router.merge(Router::new().nest(path, routes));
             }
         }
-        for (_, app) in self.map.values_mut().rev() {
-            router = app._mod_public_router(router);
+        for cfg in self.cfgs.iter() {
+            router = cfg.configure_public_router(router);
         }
 
         router
@@ -155,30 +165,29 @@ impl Reactor<PgPool, Storage> {
 
     fn internal_router(&mut self) -> Router {
         let mut router = Router::new();
-        for (path, app) in self.map.values_mut() {
+        for (path, app) in self.map.iter_mut() {
             if let Some(routes) = app.internal_routes() {
                 router = router.merge(Router::new().nest(path, routes));
             }
         }
-        for (_, app) in self.map.values_mut().rev() {
-            router = app._mod_internal_router(router);
+
+        for cfg in self.cfgs.iter() {
+            router = cfg.configure_internal_router(router);
         }
 
         router
     }
-
-    fn register_states(&self, ext: &mut Extensions) {
-        for (_, app) in self.map.values() {
-            app.data_register(ext)
-        }
-
-        ext.insert(self.storage.clone());
-        ext.insert(self.db.clone());
-    }
 }
 
 #[derive(Clone)]
-struct ReactorLayer(Arc<Reactor<PgPool, Storage>>);
+struct ReactorLayerInner {
+    db: PgPool,
+    storage: Storage,
+    state_fns: Arc<Vec<Box<dyn Fn(&mut Extensions) + Send + Sync>>>,
+}
+
+#[derive(Clone)]
+struct ReactorLayer(ReactorLayerInner);
 
 impl<S> tower::Layer<S> for ReactorLayer {
     type Service = ReactorLayerRegister<S>;
@@ -186,7 +195,7 @@ impl<S> tower::Layer<S> for ReactorLayer {
     fn layer(&self, inner: S) -> Self::Service {
         ReactorLayerRegister {
             inner,
-            reactor: self.0.clone(),
+            data: self.0.clone(),
         }
     }
 }
@@ -194,7 +203,7 @@ impl<S> tower::Layer<S> for ReactorLayer {
 #[derive(Clone)]
 struct ReactorLayerRegister<S> {
     inner: S,
-    reactor: Arc<Reactor<PgPool, Storage>>,
+    data: ReactorLayerInner,
 }
 
 impl<ResBody, S> Service<Request<ResBody>> for ReactorLayerRegister<S>
@@ -211,7 +220,13 @@ where
     }
 
     fn call(&mut self, mut req: Request<ResBody>) -> Self::Future {
-        self.reactor.register_states(&mut req.extensions_mut());
+        let ext = req.extensions_mut();
+        for f in self.data.state_fns.iter() {
+            f(ext);
+        }
+
+        ext.insert(self.data.storage.clone());
+        ext.insert(self.data.db.clone());
         self.inner.call(req)
     }
 }
