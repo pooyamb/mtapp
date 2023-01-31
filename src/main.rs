@@ -6,6 +6,7 @@ use std::{
 
 use actix_storage::Storage;
 use actix_storage_hashmap::HashMapBackend;
+use axum::Router;
 use clap::{arg, Command};
 use sqlx::{
     postgres::{PgConnectOptions, PgPoolOptions},
@@ -35,7 +36,9 @@ async fn main() {
     let grant_app = GrantApp::new();
     let session_app = SessionApp::new();
 
-    let mut app = Reactor::new("myapp")
+    let mut app = Reactor::new()
+        .public_path("/dev")
+        .internal_path("/internals")
         .mount_on("/auth", auth_app)
         .mount_on("/scopes", scope_app)
         .mount_on("/users", user_app)
@@ -64,7 +67,7 @@ async fn main() {
                 .and_then(|v: &String| v.parse().ok())
                 .unwrap_or(3000);
 
-            let router = app.into_router();
+            let router = Router::new().nest("/api", app.into_router());
 
             log::info!("Running web server on: http://{}:{}", host, port);
 
