@@ -25,10 +25,13 @@ async fn main() {
     dotenvy::dotenv().ok();
     env_logger::init();
 
-    let db = get_db().await;
-    let storage = get_storage();
+    let db_url = env::var("DATABASE_URL").expect("DATABASE_URL should be in env");
+    let secret = env::var("APP_SECRET").expect("APP_SECRET should be in env");
+    let host = env::var("APP_HOST").ok();
+    let port = env::var("APP_PORT").ok();
 
-    let secret = env::var("APP_SECRET").unwrap();
+    let db = get_db(&db_url).await;
+    let storage = get_storage();
 
     let auth_app = AuthApp::<UP, SP, GP>::new(secret);
     let scope_app = ScopeApp::new();
@@ -60,11 +63,15 @@ async fn main() {
             let host: IpAddr = m
                 .get_one("host")
                 .cloned()
-                .and_then(|v: &String| v.parse().ok())
-                .unwrap_or(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)));
+                .or(host)
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(Ipv4Addr::new(127, 0, 0, 1).into());
+
             let port: u16 = m
                 .get_one("port")
-                .and_then(|v: &String| v.parse().ok())
+                .cloned()
+                .or(port)
+                .and_then(|v| v.parse().ok())
                 .unwrap_or(3000);
 
             let router = Router::new().nest("/api", app.into_router());
@@ -92,12 +99,10 @@ fn get_clap_defs<D, S>(app: &Reactor<D, S>) -> Command {
     clap_app.subcommands(app.clap_defs())
 }
 
-async fn get_db() -> PgPool {
-    let db_url = env::var("DATABASE_URL").expect("DATABASE_URL should be in env");
-
+async fn get_db(db_url: &str) -> PgPool {
     PgPoolOptions::new()
         .connect_with(
-            PgConnectOptions::from_str(&db_url)
+            PgConnectOptions::from_str(db_url)
                 .expect("Invalid DATABASE_URL provided")
                 .disable_statement_logging()
                 .clone(),
