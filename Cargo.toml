@@ -32,6 +32,7 @@ actix-storage-hashmap = "0.3"
 async-trait = "0.1.56"
 
 dotenvy = "0.15"
+log = "0.4"
 env_logger = "0.10"
 clap = "4"
 simplelog = "0.12.0"

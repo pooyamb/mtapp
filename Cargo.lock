@@ -1392,6 +1392,7 @@ dependencies = [
  "clap",
  "dotenvy",
  "env_logger",
+ "log",
  "mtapp",
  "mtapp-auth",
  "mtapp-grant",

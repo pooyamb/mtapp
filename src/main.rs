@@ -66,6 +66,8 @@ async fn main() {
 
             let router = app.into_router();
 
+            log::info!("Running web server on: http://{}:{}", host, port);
+
             axum::Server::bind(&SocketAddr::new(host, port))
                 .serve(router.into_make_service())
                 .await
