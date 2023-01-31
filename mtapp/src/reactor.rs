@@ -1,4 +1,5 @@
 use std::{
+    borrow::Cow,
     sync::Arc,
     task::{Context, Poll},
 };
@@ -16,26 +17,32 @@ use tower::Service;
 use crate::app::{App, Configuration};
 
 pub struct Reactor<D, S> {
-    name: &'static str,
     map: IndexMap<&'static str, Box<dyn App>>,
     cfgs: Vec<Configuration>,
+
+    public_path: Option<Cow<'static, str>>,
+    internal_path: Option<Cow<'static, str>>,
 
     db: D,
     storage: S,
 }
 
 impl Reactor<(), ()> {
-    pub fn new(name: &'static str) -> Self {
+    pub fn new() -> Self {
         Self {
-            name,
             map: IndexMap::new(),
             cfgs: Vec::new(),
+
+            public_path: None,
+            internal_path: None,
 
             db: (),
             storage: (),
         }
     }
+}
 
+impl<D, S> Reactor<D, S> {
     pub fn mount_on<A>(mut self, path: &'static str, app: A) -> Self
     where
         A: App + 'static,
@@ -43,14 +50,24 @@ impl Reactor<(), ()> {
         self.map.insert(path, Box::new(app));
         self
     }
-}
 
-impl<D, S> Reactor<D, S> {
+    pub fn public_path(mut self, path: impl Into<Cow<'static, str>>) -> Self {
+        self.public_path = Some(path.into());
+        self
+    }
+
+    pub fn internal_path(mut self, path: impl Into<Cow<'static, str>>) -> Self {
+        self.internal_path = Some(path.into());
+        self
+    }
+
     pub fn db(self, db: PgPool) -> Reactor<PgPool, S> {
         Reactor {
-            name: self.name,
             map: self.map,
             cfgs: self.cfgs,
+
+            public_path: self.public_path,
+            internal_path: self.internal_path,
 
             db,
             storage: self.storage,
@@ -59,9 +76,11 @@ impl<D, S> Reactor<D, S> {
 
     pub fn storage(self, storage: Storage) -> Reactor<D, Storage> {
         Reactor {
-            name: self.name,
             map: self.map,
             cfgs: self.cfgs,
+
+            public_path: self.public_path,
+            internal_path: self.internal_path,
 
             db: self.db,
             storage,
@@ -125,12 +144,23 @@ impl Reactor<PgPool, Storage> {
             })
             .collect();
 
-        let public = self.public_router();
-        let internal = self.internal_router();
-
         let mut router = Router::new();
-        router = router.merge(Router::new().nest("/public", public));
-        router = router.merge(Router::new().nest("/internal", internal));
+
+        if self.public_path.is_some() {
+            let sub_router = self.public_router();
+            router = router.merge(Router::new().nest(
+                &self.public_path.as_ref().expect("Just checked is_some"),
+                sub_router,
+            ));
+        }
+
+        if self.internal_path.is_some() {
+            let sub_router = self.internal_router();
+            router = router.merge(Router::new().nest(
+                &self.internal_path.as_ref().expect("Just checked is_some"),
+                sub_router,
+            ));
+        }
 
         for cfg in self.cfgs.iter() {
             router = cfg.configure_base_router(router);
