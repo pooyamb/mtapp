@@ -1944,9 +1944,9 @@ dependencies = [
 
 [[package]]
 name = "serde-querystring"
-version = "0.1.0"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a9e4eec4c3d3ff56ddc6279c894bf0d1ce7eb584e1d8a9a75c61d953a78ed4b7"
+checksum = "becebfd8f87365cf2c14109b5abc9aeadf2394ac3f5637dc3851c39d129e806a"
 dependencies = [
  "lexical",
  "serde",
@@ -1954,8 +1954,9 @@ dependencies = [
 
 [[package]]
 name = "serde-querystring-axum"
-version = "0.1.0"
-source = "git+https://github.com/pooyamb/serde-querystring#b914ab91cddd00d3c494f93013fa095a34f979b9"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a25072aece012bc63db3cd2e809ef2ee34677438b5c21e0431010461e0cbd77b"
 dependencies = [
  "async-trait",
  "axum-core",

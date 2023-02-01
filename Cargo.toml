@@ -60,6 +60,4 @@ json-response-derive = { path = "./json-response-derive" }
 actix-storage = { git = "https://github.com/pooyamb/actix-storage" }
 actix-storage-hashmap = { git = "https://github.com/pooyamb/actix-storage" }
 
-serde-querystring-axum = { git = "https://github.com/pooyamb/serde-querystring" }
-
 schemer = { git = "https://github.com/pooyamb/schemer.git", branch = "async" }
