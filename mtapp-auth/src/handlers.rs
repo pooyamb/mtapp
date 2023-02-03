@@ -100,6 +100,7 @@ pub async fn logout<U, S>(
     config: Extension<AuthConfig>,
     storage: Extension<Storage>,
     claims: Option<Extension<Claims>>,
+    cookies: CookieJar,
     session_data: S::Data<()>,
 ) -> Result<impl IntoResponse, AuthError>
 where
@@ -115,6 +116,16 @@ where
             .scope(config.blacklist_scope())
             .set_expiring(jti, b"", config.get_token_expiry())
             .await?;
+    } else if let Some(cookie) = cookies.get("refresh-token") {
+        let (jti, _) = S::find(&session_data, cookie.value()).await?;
+
+        // Blacklist the previous jti
+        storage
+            .scope(config.blacklist_scope())
+            .set_expiring(jti, b"", config.get_token_expiry())
+            .await?;
+
+        S::delete_by_jti(&session_data, jti).await?;
     }
 
     Ok(JsonResponse::with_content("Logged out successfully"))
