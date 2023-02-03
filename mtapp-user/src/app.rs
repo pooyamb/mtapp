@@ -33,9 +33,11 @@ impl App for UserApp {
 
     fn public_routes(&mut self) -> Option<Router> {
         Some(
-            Router::new()
-                .route("/", post(handlers::signup))
-                .route("/me", get(handlers::get).put(handlers::update)),
+            Router::new().route("/", post(handlers::signup)).merge(
+                Router::new()
+                    .route("/me", get(handlers::get).put(handlers::update))
+                    .layer(ClaimCheck::new(|claims: Option<Claims>| claims.is_some())),
+            ),
         )
     }
 

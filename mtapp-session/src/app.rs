@@ -28,7 +28,8 @@ impl App for SessionApp {
             Router::new()
                 .route("/", get(handlers::list))
                 .route("/current", get(handlers::get))
-                .route("/:session_id", get(handlers::get).delete(handlers::delete)),
+                .route("/:session_id", get(handlers::get).delete(handlers::delete))
+                .layer(ClaimCheck::new(|claims: Option<Claims>| claims.is_some())),
         )
     }
 
