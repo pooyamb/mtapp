@@ -1,7 +1,7 @@
 use std::{error::Error, fmt};
 
-use actix_storage::StorageError;
 use axum::http::StatusCode;
+use basteh::StorageError;
 use json_response::ApiError;
 
 #[derive(Debug, ApiError)]

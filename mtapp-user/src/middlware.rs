@@ -1,8 +1,8 @@
-use actix_storage::Storage;
 use axum::http::Request;
 use axum::middleware::Next;
 use axum::response::IntoResponse;
 use axum::Extension;
+use basteh::Storage;
 use mtapp_auth::{AuthError, Claims};
 
 use crate::errors::UserError;

@@ -4,7 +4,6 @@ use std::pin::Pin;
 use std::sync::Arc;
 use std::task::{Context, Poll};
 
-use actix_storage::Storage;
 use axum::body::{self, BoxBody, Bytes, HttpBody};
 use axum::headers::authorization::Bearer;
 use axum::headers::Authorization;
@@ -12,6 +11,7 @@ use axum::http::{Request, Response};
 use axum::middleware::Next;
 use axum::response::IntoResponse;
 use axum::{BoxError, Extension, TypedHeader};
+use basteh::Storage;
 use tower::{Layer, Service};
 
 use crate::app::AuthConfig;

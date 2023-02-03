@@ -1,7 +1,7 @@
-use actix_storage::Storage;
 use axum::extract::Path;
 use axum::response::IntoResponse;
 use axum::{Extension, Json};
+use basteh::Storage;
 use json_response::{JsonListMeta, JsonResponse};
 use seaqs::QueryFilter;
 use serde_querystring_axum::QueryString;

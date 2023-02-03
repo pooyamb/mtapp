@@ -1,10 +1,10 @@
-use actix_storage::Storage;
 use axum::{
     http::header::SET_COOKIE,
     response::{AppendHeaders, IntoResponse},
     Extension, Form,
 };
 use axum_extra::extract::{cookie::Cookie, CookieJar};
+use basteh::Storage;
 use json_response::JsonResponse;
 
 use crate::{

@@ -15,6 +15,6 @@ cli-table = "0.4.7"
 indexmap = "1"
 
 sqlx = { version = "0.6.0", features = ["postgres", "runtime-tokio-rustls", "uuid", "chrono", "offline"] }
-actix-storage = "0.3"
+basteh = "0.4.0-alpha.2"
 
 schemer-migration = "0"

@@ -4,9 +4,9 @@ use std::{
     str::FromStr,
 };
 
-use actix_storage::Storage;
-use actix_storage_hashmap::HashMapBackend;
 use axum::Router;
+use basteh::Storage;
+use basteh_memory::MemoryBackend;
 use clap::{arg, Command};
 use sqlx::{
     postgres::{PgConnectOptions, PgPoolOptions},
@@ -113,6 +113,6 @@ async fn get_db(db_url: &str) -> PgPool {
 
 fn get_storage() -> Storage {
     Storage::build()
-        .store(HashMapBackend::start_default())
+        .store(MemoryBackend::start_default())
         .finish()
 }
