@@ -37,7 +37,7 @@ pub async fn jwt_claims<B>(
 
             let blacklisted = match storage
                 .scope(config.blacklist_scope())
-                .contains_key(claims.inner().jti)
+                .contains_key(claims.jti)
                 .await
             {
                 Ok(a) => a,

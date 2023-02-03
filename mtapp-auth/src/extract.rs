@@ -1,3 +1,4 @@
+use std::ops::Deref;
 use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
@@ -63,8 +64,8 @@ impl Claims {
         Ok(Self(Arc::new(inner)))
     }
 
-    pub fn inner(&self) -> Arc<ClaimsInner> {
-        self.0.clone()
+    pub fn into_inner(self) -> Arc<ClaimsInner> {
+        self.0
     }
 
     pub fn has_scope(&self, scope: &str) -> bool {
@@ -91,39 +92,37 @@ impl<S> FromRequestParts<S> for Claims {
     }
 }
 
-/// Get the jwt Claims from extensions, it won't work outside of jwt middleware wrapped handlers
-/// It also adds a method to invalid current token
-///
-/// Be advised the actual user might not exist
-pub struct ClaimsModify {
-    claims: Claims,
+impl Deref for Claims {
+    type Target = ClaimsInner;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+/// Used to blacklist tokens
+pub struct TokenBlacklist {
     config: AuthConfig,
     storage: Storage,
 }
 
-impl ClaimsModify {
-    pub fn get_claims(&self) -> &Claims {
-        &self.claims
-    }
-
-    pub async fn invalidate(&self) -> Result<(), AuthError> {
+impl TokenBlacklist {
+    pub async fn blacklist(&self, jti: Uuid) -> Result<(), AuthError> {
         Ok(self
             .storage
             .scope(self.config.blacklist_scope())
-            .set_expiring(self.claims.inner().jti, b"", self.config.get_token_expiry())
+            .set_expiring(jti, b"", self.config.get_token_expiry())
             .await?)
     }
 }
 
 #[axum::async_trait]
-impl<S: Sync> FromRequestParts<S> for ClaimsModify {
+impl<S: Sync> FromRequestParts<S> for TokenBlacklist {
     type Rejection = AuthError;
 
     async fn from_request_parts(
         parts: &mut axum::http::request::Parts,
         state: &S,
     ) -> Result<Self, Self::Rejection> {
-        let claims = Claims::from_request_parts(parts, state).await?;
         let config = parts
             .extensions
             .get::<AuthConfig>()
@@ -135,10 +134,6 @@ impl<S: Sync> FromRequestParts<S> for ClaimsModify {
             .ok_or(AuthError::Configuration)?
             .clone();
 
-        Ok(Self {
-            claims,
-            config,
-            storage,
-        })
+        Ok(Self { config, storage })
     }
 }

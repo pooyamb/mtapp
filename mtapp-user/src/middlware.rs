@@ -16,7 +16,7 @@ pub(crate) async fn user_ban_check<B>(
     if let Some(claims) = claims {
         match storage
             .scope("banned_user_ids")
-            .contains_key(claims.inner().user_id)
+            .contains_key(claims.user_id)
             .await
         {
             Ok(res) => {
