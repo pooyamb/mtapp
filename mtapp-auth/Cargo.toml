@@ -9,6 +9,7 @@ publish = false
 axum = { version = "0.6", features = ["headers"] }
 axum-extra = { version = "0.4", features = ["cookie"] }
 tower = "0.4"
+utoipa = { version = "3" }
 
 uuid = { version = "1.1.2", features = ["serde", "v4"] }
 jsonwebtoken = "8.1.1"

@@ -5,23 +5,51 @@ use axum::{
 };
 use axum_extra::extract::{cookie::Cookie, CookieJar};
 use basteh::Storage;
-use json_response::JsonResponse;
+use json_response::{InternalErrorResponse, JsonResponse};
 
 use crate::{
     app::AuthConfig,
+    errors::utoipa_response::{AuthErrorBadToken, AuthErrorCredentials, AuthErrorPermission},
     errors::AuthError,
     extract::Claims,
     providers::{GrantProvider, SessionProvider, UserProvider},
     schemas::{Credentials, TokenData},
 };
 
+#[utoipa::path(
+    post,
+    tag = "Auth",
+    path = "/login",
+    request_body(
+        content=inline(Credentials),
+        content_type="application/x-www-form-urlencoded",
+        description="User credentials"
+    ),
+    responses(
+        (
+            status = 200,
+            body=TokenData,
+            description="Login was successful",
+            headers(
+                (
+                    "Set-Cookie" = String,
+                    description="Contains a cookie name `refresh-token` which is used \
+                        by both the `/refresh` endpoint and the `/logout` endpoint"
+                )
+            )
+        ),
+        (status = 401, response=AuthErrorCredentials),
+        (status = 403, response=AuthErrorPermission),
+        (status = 500, response=InternalErrorResponse),
+    )
+)]
 pub async fn login<U, S, G>(
     config: Extension<AuthConfig>,
     user_data: U::Data<()>,
     session_data: S::Data<()>,
     scopes_data: G::Data<()>,
     credentials: Form<Credentials>,
-) -> Result<impl IntoResponse, AuthError>
+) -> impl IntoResponse
 where
     U: UserProvider,
     S: SessionProvider,
@@ -51,9 +79,33 @@ where
         expires_in: config.get_token_expiry().as_secs(),
     });
 
-    Ok((headers, json))
+    Result::<_, AuthError>::Ok((headers, json))
 }
 
+#[utoipa::path(
+    post,
+    tag = "Auth",
+    path = "/refresh",
+    params(
+        ("refresh-token" = Option<String>, Cookie, description = "Refresh token")
+    ),
+    responses(
+        (
+            status = 200, 
+            body=TokenData, 
+            headers(
+                (
+                    "Set-Cookie" = String,
+                    description="Contains a cookie name `refresh-token` which is used \
+                        by both the `/refresh` endpoint and the `/logout` endpoint"
+                )
+            )
+        ),
+        (status = 401, response=AuthErrorBadToken),
+        (status = 403, response=AuthErrorPermission),
+        (status = 500, response=InternalErrorResponse),
+    )
+)]
 pub async fn refresh<S, G>(
     config: Extension<AuthConfig>,
     storage: Extension<Storage>,
@@ -96,13 +148,27 @@ where
     Ok(jr)
 }
 
+#[utoipa::path(
+    post,
+    tag = "Auth",
+    path = "/logout",
+    params(
+        ("refresh-token" = Option<String>, Cookie, description = "Refresh token")
+    ),
+    responses(
+        (status = 200, body=TokenData),
+        (status = 401, response=AuthErrorBadToken),
+        (status = 403, response=AuthErrorPermission),
+        (status = 500, response=InternalErrorResponse),
+    )
+)]
 pub async fn logout<U, S>(
     config: Extension<AuthConfig>,
     storage: Extension<Storage>,
     claims: Option<Extension<Claims>>,
     cookies: CookieJar,
     session_data: S::Data<()>,
-) -> Result<impl IntoResponse, AuthError>
+) -> impl IntoResponse
 where
     U: UserProvider,
     S: SessionProvider,
@@ -127,5 +193,5 @@ where
         S::delete_by_jti(&session_data, jti).await?;
     }
 
-    Ok(JsonResponse::with_content("Logged out successfully"))
+    Result::<_, AuthError>::Ok(JsonResponse::with_content("Logged out successfully"))
 }

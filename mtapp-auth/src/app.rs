@@ -6,6 +6,7 @@ use axum::routing::post;
 use axum::Router;
 use mtapp::{App, Configuration};
 use secrecy::{ExposeSecret, Secret};
+use utoipa::OpenApi;
 
 use crate::handlers::*;
 use crate::middleware::jwt_claims;
@@ -104,5 +105,13 @@ where
                 .route("/refresh", post(refresh::<S, G>))
                 .route("/logout", post(logout::<U, S>)),
         )
+    }
+
+    fn public_openapi(&mut self) -> Option<utoipa::openapi::OpenApi> {
+        Some(crate::openapi::AuthOpenApi::openapi())
+    }
+
+    fn internal_openapi(&mut self) -> Option<utoipa::openapi::OpenApi> {
+        Some(crate::openapi::AuthOpenApi::openapi())
     }
 }

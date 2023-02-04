@@ -3,6 +3,7 @@ mod errors;
 mod extract;
 mod handlers;
 mod middleware;
+mod openapi;
 mod providers;
 mod schemas;
 
