@@ -9,6 +9,8 @@ publish = false
 axum = "0.6"
 tower = "0.4"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+utoipa = { version = "3" }
+json-response = "0.1.0"
 
 clap = "4"
 cli-table = "0.4.7"

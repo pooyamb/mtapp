@@ -1,5 +1,6 @@
 use axum::{http::Extensions, Router};
 use schemer_migration::Migration;
+use utoipa::openapi::OpenApi;
 
 #[axum::async_trait(?Send)]
 pub trait App {
@@ -26,6 +27,14 @@ pub trait App {
     async fn clap_run(&mut self, _matches: &clap::ArgMatches, _ext: &Extensions) {}
 
     fn configure(&mut self, _cfg: &mut Configuration) {}
+
+    fn public_openapi(&mut self) -> Option<OpenApi> {
+        None
+    }
+
+    fn internal_openapi(&mut self) -> Option<OpenApi> {
+        None
+    }
 }
 
 pub struct Configuration {

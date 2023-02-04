@@ -11,8 +11,13 @@ use axum::{
 use basteh::Storage;
 use clap::{ArgMatches, Command};
 use indexmap::IndexMap;
+use json_response::InternalErrorResponse;
 use sqlx::PgPool;
 use tower::Service;
+use utoipa::{
+    openapi::{self, PathsBuilder},
+    OpenApi,
+};
 
 use crate::app::{App, Configuration};
 
@@ -146,20 +151,14 @@ impl Reactor<PgPool, Storage> {
 
         let mut router = Router::new();
 
-        if self.public_path.is_some() {
+        if let Some(public_path) = self.public_path.as_ref().cloned() {
             let sub_router = self.public_router();
-            router = router.merge(Router::new().nest(
-                &self.public_path.as_ref().expect("Just checked is_some"),
-                sub_router,
-            ));
+            router = router.merge(Router::new().nest(&public_path, sub_router));
         }
 
-        if self.internal_path.is_some() {
+        if let Some(internal_path) = self.internal_path.as_ref().cloned() {
             let sub_router = self.internal_router();
-            router = router.merge(Router::new().nest(
-                &self.internal_path.as_ref().expect("Just checked is_some"),
-                sub_router,
-            ));
+            router = router.merge(Router::new().nest(&internal_path, sub_router));
         }
 
         for cfg in self.cfgs.iter() {
@@ -206,6 +205,76 @@ impl Reactor<PgPool, Storage> {
         }
 
         router
+    }
+
+    pub fn public_api_docs(&mut self) -> openapi::OpenApi {
+        #[derive(OpenApi)]
+        #[openapi(
+            info(description = "Api documents for mtapp", version = "0.1.0"),
+            components(responses(InternalErrorResponse))
+        )]
+        struct Api;
+
+        let mut api = Api::openapi();
+
+        let public_path = if let Some(public_path) = self.public_path.as_ref().cloned() {
+            public_path
+        } else {
+            return api;
+        };
+
+        for (app_path, app) in self.map.iter_mut() {
+            if let Some(mut app_api) = app.public_openapi() {
+                app_api.paths = app_api
+                    .paths
+                    .paths
+                    .into_iter()
+                    .map(|(path, data)| (format!("{}{}{}", public_path, app_path, path), data))
+                    .fold(PathsBuilder::new(), |builder, path| {
+                        builder.path(path.0, path.1)
+                    })
+                    .build();
+
+                api.merge(app_api);
+            }
+        }
+
+        api
+    }
+
+    pub fn internal_api_docs(&mut self) -> openapi::OpenApi {
+        #[derive(OpenApi)]
+        #[openapi(
+            info(description = "Internal api document for mtapp", version = "0.1.0"),
+            components(responses(InternalErrorResponse))
+        )]
+        struct Api;
+
+        let mut api = Api::openapi();
+
+        let internal_path = if let Some(internal_path) = self.internal_path.as_ref().cloned() {
+            internal_path
+        } else {
+            return api;
+        };
+
+        for (app_path, app) in self.map.iter_mut() {
+            if let Some(mut app_api) = app.internal_openapi() {
+                app_api.paths = app_api
+                    .paths
+                    .paths
+                    .into_iter()
+                    .map(|(path, data)| (format!("{}{}{}", internal_path, app_path, path), data))
+                    .fold(PathsBuilder::new(), |builder, path| {
+                        builder.path(path.0, path.1)
+                    })
+                    .build();
+
+                api.merge(app_api);
+            }
+        }
+
+        api
     }
 }
 

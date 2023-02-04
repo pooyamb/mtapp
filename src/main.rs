@@ -4,7 +4,6 @@ use std::{
     str::FromStr,
 };
 
-use axum::Router;
 use basteh::Storage;
 use basteh_memory::MemoryBackend;
 use clap::{arg, Command};
@@ -19,6 +18,7 @@ use mtapp_grant::{GrantApp, Provider as GP};
 use mtapp_scope::ScopeApp;
 use mtapp_session::{Provider as SP, SessionApp};
 use mtapp_user::{Provider as UP, UserApp};
+use utoipa_swagger_ui::SwaggerUi;
 
 #[tokio::main]
 async fn main() {
@@ -40,8 +40,8 @@ async fn main() {
     let session_app = SessionApp::new();
 
     let mut app = Reactor::new()
-        .public_path("/dev")
-        .internal_path("/internals")
+        .public_path("/api/dev")
+        .internal_path("/api/internals")
         .mount_on("/auth", auth_app)
         .mount_on("/scopes", scope_app)
         .mount_on("/users", user_app)
@@ -74,7 +74,15 @@ async fn main() {
                 .and_then(|v| v.parse().ok())
                 .unwrap_or(3000);
 
-            let router = Router::new().nest("/api", app.into_router());
+            let api_docs = app.public_api_docs();
+            let internal_api_docs = app.internal_api_docs();
+            let mut router = app.into_router();
+            router = router
+                .merge(SwaggerUi::new("/api/dev/docs").url("/api/dev/api-docs.json", api_docs))
+                .merge(
+                    SwaggerUi::new("/api/internals/docs")
+                        .url("/api/internals/api-docs.json", internal_api_docs),
+                );
 
             log::info!("Running web server on: http://{}:{}", host, port);
 
