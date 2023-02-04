@@ -1,6 +1,6 @@
 use super::attrs::Attrs;
 use crate::ctxt::Ctxt;
-use proc_macro2::TokenStream;
+use proc_macro2::{Span, TokenStream};
 use quote::quote;
 use quote::{ToTokens, TokenStreamExt};
 use syn::{punctuated::Punctuated, token::Comma, Attribute, Ident, Variant};
@@ -178,7 +178,111 @@ impl JsonError {
             },
         }
     }
+
+    pub(crate) fn expand_utoipa_response(&self, name: &Ident) -> TokenStream {
+        match self.kind {
+            JsonErrorKind::NaiveRequest => {
+                let (key, value) = self.attrs.utoipa_expand_unzip();
+                quote! {
+                        (
+                            stringify!(#name),
+                            json_response::__private::utoipa::ResponseBuilder::new()
+                                .content(
+                                    "application/json",
+                                    json_response::__private::utoipa::ContentBuilder::new()
+                                        .schema(
+                                            json_response::__private::utoipa::ObjectBuilder::new()
+                                                #(.property(
+                                                    stringify!(#key),
+                                                    json_response::__private::utoipa::ObjectBuilder::new()
+                                                        .schema_type(json_response::__private::utoipa::SchemaType::Integer)
+                                                        .enum_values(Some([#value]))
+                                                        .example(Some(#value.into())),
+                                                ))*
+                                                .build(),
+                                        )
+                                        .build()
+                                        .into(),
+                                )
+                                .build()
+                                .into(),
+                        )
+                }
+            }
+            JsonErrorKind::Request => {
+                let (fields, values) = self.attrs.utoipa_expand_unzip();
+                quote! {
+                    (
+                        stringify!(#name),
+                        json_response::__private::utoipa::ResponseBuilder::new()
+                            .content(
+                                "application/json",
+                                json_response::__private::utoipa::ContentBuilder::new()
+                                    .schema(
+                                        json_response::__private::utoipa::ObjectBuilder::new()
+                                            #(.property(
+                                                stringify!(#fields),
+                                                json_response::__private::utoipa::ObjectBuilder::new()
+                                                    .schema_type(json_response::__private::utoipa::SchemaType::Integer)
+                                                    .enum_values(Some([#values]))
+                                                    .example(Some(#values.into())),
+                                            ))*
+                                            .property(
+                                                "content",
+                                                json_response::__private::utoipa::ObjectBuilder::new(),
+                                            )
+                                            .build(),
+                                    )
+                                    .build()
+                                    .into(),
+                            )
+                            .build()
+                            .into(),
+                    )
+                }
+            }
+            _ => {
+                quote! {
+                    (
+                        "InternalError",
+                        json_response::__private::utoipa::ResponseBuilder::new()
+                            .content(
+                                "application/json",
+                                json_response::__private::utoipa::ContentBuilder::new()
+                                    .schema(
+                                        json_response::__private::utoipa::ObjectBuilder::new()
+                                            .property(
+                                                "status",
+                                                json_response::__private::utoipa::ObjectBuilder::new()
+                                                    .schema_type(json_response::__private::utoipa::SchemaType::Integer)
+                                                    .enum_values(Some([500]))
+                                                    .example(Some(500.into())),
+                                            )
+                                            .property(
+                                                "code",
+                                                json_response::__private::utoipa::ObjectBuilder::new()
+                                                    .schema_type(json_response::__private::utoipa::SchemaType::String)
+                                                    .enum_values(Some(["50000 internal-error"]))
+                                                    .example(Some("50000 internal-error".into())),
+                                            )
+                                            .property(
+                                                "content",
+                                                json_response::__private::utoipa::ObjectBuilder::new(),
+                                            )
+                                            .build(),
+                                    )
+                                    .build()
+                                    .into(),
+                            )
+                            .build()
+                            .into(),
+                    )
+                }
+            }
+        }
+    }
 }
+
 pub struct JsonErrors {
     ident: Ident,
     errors: Vec<JsonError>,
@@ -199,6 +303,13 @@ impl JsonErrors {
         }
         Some(Self { ident, errors: ret })
     }
+
+    pub(crate) fn into_utoipa_expand(self) -> JsonErrorUtoipa {
+        JsonErrorUtoipa {
+            ident: self.ident,
+            errors: self.errors,
+        }
+    }
 }
 
 impl ToTokens for JsonErrors {
@@ -206,6 +317,32 @@ impl ToTokens for JsonErrors {
         for err_type in &self.errors {
             let cond = err_type.expand_match_condition(&self.ident);
             let gen = quote!(#cond,);
+            tokens.append_all(gen);
+        }
+    }
+}
+
+pub struct JsonErrorUtoipa {
+    ident: Ident,
+    errors: Vec<JsonError>,
+}
+
+impl ToTokens for JsonErrorUtoipa {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        for err_type in &self.errors {
+            let name = Ident::new(
+                &format!("{}{}", self.ident, err_type.ident),
+                Span::call_site(),
+            );
+            let response = err_type.expand_utoipa_response(&name);
+            let gen = quote!(
+                pub struct #name;
+                impl json_response::__private::utoipa::ToResponse<'static> for #name {
+                    fn response() -> (&'static str, json_response::__private::utoipa::RefOr<json_response::__private::utoipa::Response>) {
+                        #response
+                    }
+                }
+            );
             tokens.append_all(gen);
         }
     }

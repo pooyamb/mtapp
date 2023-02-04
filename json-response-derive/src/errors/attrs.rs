@@ -102,4 +102,22 @@ impl Attrs {
         let (fields, values): (Vec<Path>, Vec<TokenStream>) = vect.clone().into_iter().unzip();
         (fields, values)
     }
+
+    pub(crate) fn utoipa_expand_unzip(&self) -> (Vec<Path>, Vec<TokenStream>) {
+        self.0
+            .iter()
+            .map(|attr| {
+                let right = &attr.right;
+                let lit = match right {
+                    ExprRight::Lit(value) => {
+                        quote! {#value}
+                    }
+                    ExprRight::Path(path) => quote! {#path.as_u16()},
+                };
+                (attr.left.clone(), lit)
+            })
+            .collect::<Vec<(Path, TokenStream)>>()
+            .into_iter()
+            .unzip()
+    }
 }

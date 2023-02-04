@@ -42,5 +42,18 @@ fn expand_derive_enum(
             }
         }
     };
+
+    let json_errors_utoipa = json_errors.into_utoipa_expand();
+
+    // Utoipa impls
+    let gen = quote! {
+        #gen
+        pub(crate) mod utoipa_response{
+            use super::*;
+
+            #json_errors_utoipa
+        }
+    };
+
     Some(gen)
 }
