@@ -14,3 +14,8 @@ pub struct Credentials {
     pub username: String,
     pub password: String,
 }
+
+#[derive(Deserialize, ToSchema, IntoParams)]
+pub struct Flat {
+    pub flat: Option<bool>,
+}

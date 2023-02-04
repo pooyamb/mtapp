@@ -121,7 +121,7 @@ impl<S: Sync> FromRequestParts<S> for TokenBlacklist {
 
     async fn from_request_parts(
         parts: &mut axum::http::request::Parts,
-        state: &S,
+        _state: &S,
     ) -> Result<Self, Self::Rejection> {
         let config = parts
             .extensions

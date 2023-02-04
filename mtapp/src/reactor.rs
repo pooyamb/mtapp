@@ -224,12 +224,13 @@ impl Reactor<PgPool, Storage> {
         };
 
         for (app_path, app) in self.map.iter_mut() {
-            if let Some(mut app_api) = app.public_openapi() {
+            let full_app_path = format!("{}{}", public_path, app_path);
+            if let Some(mut app_api) = app.public_openapi(&full_app_path) {
                 app_api.paths = app_api
                     .paths
                     .paths
                     .into_iter()
-                    .map(|(path, data)| (format!("{}{}{}", public_path, app_path, path), data))
+                    .map(|(path, data)| (format!("{}{}", full_app_path, path), data))
                     .fold(PathsBuilder::new(), |builder, path| {
                         builder.path(path.0, path.1)
                     })
@@ -259,12 +260,13 @@ impl Reactor<PgPool, Storage> {
         };
 
         for (app_path, app) in self.map.iter_mut() {
-            if let Some(mut app_api) = app.internal_openapi() {
+            let full_app_path = format!("{}{}", internal_path, app_path);
+            if let Some(mut app_api) = app.internal_openapi(&full_app_path) {
                 app_api.paths = app_api
                     .paths
                     .paths
                     .into_iter()
-                    .map(|(path, data)| (format!("{}{}{}", internal_path, app_path, path), data))
+                    .map(|(path, data)| (format!("{}{}", full_app_path, path), data))
                     .fold(PathsBuilder::new(), |builder, path| {
                         builder.path(path.0, path.1)
                     })

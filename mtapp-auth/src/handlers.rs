@@ -1,7 +1,7 @@
 use axum::{
     http::header::SET_COOKIE,
     response::{AppendHeaders, IntoResponse},
-    Extension, Form,
+    Extension, Form, extract::Query, Json,
 };
 use axum_extra::extract::{cookie::Cookie, CookieJar};
 use basteh::Storage;
@@ -13,7 +13,7 @@ use crate::{
     errors::AuthError,
     extract::Claims,
     providers::{GrantProvider, SessionProvider, UserProvider},
-    schemas::{Credentials, TokenData},
+    schemas::{Credentials, TokenData, Flat},
 };
 
 #[utoipa::path(
@@ -45,6 +45,7 @@ use crate::{
 )]
 pub async fn login<U, S, G>(
     config: Extension<AuthConfig>,
+    query: Query<Flat>,
     user_data: U::Data<()>,
     session_data: S::Data<()>,
     scopes_data: G::Data<()>,
@@ -72,14 +73,18 @@ where
             .to_string(),
     )]);
 
-    let json = JsonResponse::with_content(TokenData {
+    let token_data = TokenData {
         access_token,
         token_type: "bearer",
         refresh_token,
         expires_in: config.get_token_expiry().as_secs(),
-    });
+    };
 
-    Result::<_, AuthError>::Ok((headers, json))
+    if query.flat.unwrap_or_default(){
+        Result::<_, AuthError>::Ok((headers, Json(token_data)).into_response())
+    } else {
+        Result::<_, AuthError>::Ok((headers, JsonResponse::with_content(token_data)).into_response())
+    }
 }
 
 #[utoipa::path(
@@ -109,6 +114,7 @@ where
 pub async fn refresh<S, G>(
     config: Extension<AuthConfig>,
     storage: Extension<Storage>,
+    query: Query<Flat>,
     session_data: S::Data<()>,
     grants_data: G::Data<()>,
     cookies: CookieJar,
@@ -138,14 +144,18 @@ where
     let claims = Claims::new(user_id, jti, scopes, config.get_token_expiry());
     let access_token = claims.generate_token(config.expose_secret());
 
-    let jr = JsonResponse::with_content(TokenData {
+    let token_data = TokenData {
         access_token,
         token_type: "bearer",
         refresh_token,
         expires_in: config.get_token_expiry().as_secs(),
-    });
+    };
 
-    Ok(jr)
+    if query.flat.unwrap_or_default(){
+        Result::<_, AuthError>::Ok(Json(token_data).into_response())
+    } else {
+        Result::<_, AuthError>::Ok(JsonResponse::with_content(token_data).into_response())
+    }
 }
 
 #[utoipa::path(

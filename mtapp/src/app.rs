@@ -28,11 +28,11 @@ pub trait App {
 
     fn configure(&mut self, _cfg: &mut Configuration) {}
 
-    fn public_openapi(&mut self) -> Option<OpenApi> {
+    fn public_openapi(&mut self, _path: &str) -> Option<OpenApi> {
         None
     }
 
-    fn internal_openapi(&mut self) -> Option<OpenApi> {
+    fn internal_openapi(&mut self, _path: &str) -> Option<OpenApi> {
         None
     }
 }

@@ -6,13 +6,13 @@ use axum::routing::post;
 use axum::Router;
 use mtapp::{App, Configuration};
 use secrecy::{ExposeSecret, Secret};
-use utoipa::OpenApi;
 
 use crate::handlers::*;
 use crate::middleware::jwt_claims;
+use crate::openapi::get_open_api;
 use crate::providers::{GrantProvider, SessionProvider, UserProvider};
 
-const TOKENEXPIRY: u64 = 60 * 60 * 5;
+const TOKENEXPIRY: u64 = 20;
 
 #[derive(Clone)]
 pub struct AuthConfig {
@@ -107,11 +107,11 @@ where
         )
     }
 
-    fn public_openapi(&mut self) -> Option<utoipa::openapi::OpenApi> {
-        Some(crate::openapi::AuthOpenApi::openapi())
+    fn public_openapi(&mut self, path: &str) -> Option<utoipa::openapi::OpenApi> {
+        Some(get_open_api(path))
     }
 
-    fn internal_openapi(&mut self) -> Option<utoipa::openapi::OpenApi> {
-        Some(crate::openapi::AuthOpenApi::openapi())
+    fn internal_openapi(&mut self, path: &str) -> Option<utoipa::openapi::OpenApi> {
+        Some(get_open_api(path))
     }
 }
