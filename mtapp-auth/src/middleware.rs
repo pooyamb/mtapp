@@ -111,7 +111,10 @@ where
         let fut = self.inner.call(req);
 
         Box::pin(async move {
-            if !check_fn(claims) {
+            let r = !check_fn(claims.clone());
+            if r && claims.is_none() {
+                Ok(AuthError::Authentication.into_response())
+            } else if r {
                 Ok(AuthError::Permission.into_response())
             } else {
                 Ok(fut.await?.map(body::boxed))
