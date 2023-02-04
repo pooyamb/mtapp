@@ -6,6 +6,7 @@ use axum::{
     Json,
 };
 use serde::Serialize;
+use utoipa::ToSchema;
 
 fn as_u16<S>(status: &StatusCode, serializer: S) -> Result<S::Ok, S::Error>
 where
@@ -13,6 +14,9 @@ where
 {
     serializer.serialize_u16(status.as_u16())
 }
+
+#[derive(Debug, Default, Serialize, ToSchema)]
+pub struct Nothing;
 
 #[derive(Debug, Default, Serialize)]
 pub struct JsonListMeta {
@@ -42,7 +46,7 @@ impl JsonListMeta {
 }
 
 #[derive(Debug, Serialize)]
-pub struct JsonResponse<T, M = ()> {
+pub struct JsonResponse<T, M = Nothing> {
     #[serde(serialize_with = "as_u16")]
     status: StatusCode,
     content: T,
@@ -74,7 +78,7 @@ impl<T> JsonResponse<T> {
         Self {
             status: StatusCode::OK,
             content,
-            meta: (),
+            meta: Nothing,
         }
     }
 }
@@ -121,7 +125,7 @@ where
 /////////////////////////////////////////////////////////////////////////////////////////
 
 #[derive(Default, Debug, Serialize)]
-pub struct JsonError<T = ()> {
+pub struct JsonError<T = Nothing> {
     #[serde(serialize_with = "as_u16")]
     pub status: StatusCode,
     pub code: &'static str,
