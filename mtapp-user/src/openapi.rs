@@ -33,7 +33,10 @@ type UserListJson = JsonResponse<UserList>;
 #[openapi(
     info(description = "User management endpoints"),
     paths(handlers::signup, handlers::get, handlers::update),
-    components(schemas(UserJson), responses(UserErrorNotFound))
+    components(
+        schemas(UserJson),
+        responses(UserErrorNotFound, UserErrorValidationError, UserErrorDuplicateField)
+    )
 )]
 pub(crate) struct PublicUserOpenApi;
 
