@@ -57,7 +57,7 @@ pub async fn list(
         description="Scope create"
     ),
     responses(
-        (status = 200, body=User),
+        (status = 200, body=Scope),
         AuthErrorAuthentication,
         AuthErrorPermission,
         ScopeErrorDuplicateField,
@@ -83,7 +83,7 @@ pub async fn create(
         ScopeDeleteFilter
     ),
     responses(
-        (status = 200, body=UserList),
+        (status = 200, body=ScopeList),
         AuthErrorAuthentication,
         AuthErrorPermission,
         InternalErrorResponse
