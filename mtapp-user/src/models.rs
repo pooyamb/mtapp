@@ -7,12 +7,13 @@ use sqlx::types::{
     Uuid,
 };
 use sqlx::{Error, Executor, FromRow, Postgres, Row};
+use utoipa::ToSchema;
 
 use crate::filters::{UserDeleteFilter, UserLookupFilter};
 use crate::helpers;
 use crate::schemas::{UserCreate, UserUpdate};
 
-#[derive(Serialize, FromRow)]
+#[derive(Serialize, FromRow, ToSchema)]
 #[enum_def]
 pub struct User {
     pub id: Uuid,

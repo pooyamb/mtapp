@@ -1,7 +1,8 @@
 use serde::Deserialize;
+use utoipa::ToSchema;
 use validator::Validate;
 
-#[derive(Validate, Deserialize)]
+#[derive(Validate, Deserialize, ToSchema)]
 pub struct UserCreate {
     #[validate(length(min = 4, max = 48))]
     pub username: String,
@@ -11,7 +12,7 @@ pub struct UserCreate {
     pub email: Option<String>,
 }
 
-#[derive(Validate, Deserialize, Default)]
+#[derive(Validate, Deserialize, Default, ToSchema)]
 pub struct UserUpdate {
     #[validate(length(min = 4, max = 48))]
     pub username: Option<String>,
@@ -21,7 +22,7 @@ pub struct UserUpdate {
     pub email: Option<String>,
 }
 
-#[derive(Validate, Deserialize, Default)]
+#[derive(Validate, Deserialize, Default, ToSchema)]
 pub struct SelfUpdate {
     #[validate(length(min = 8, max = 128))]
     pub password: Option<String>,
@@ -37,7 +38,7 @@ impl Into<UserUpdate> for SelfUpdate {
     }
 }
 
-#[derive(Validate, Deserialize)]
+#[derive(Validate, Deserialize, ToSchema)]
 pub struct UserRegister {
     #[validate(length(min = 6, max = 48))]
     pub username: String,

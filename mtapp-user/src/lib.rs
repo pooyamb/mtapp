@@ -7,6 +7,7 @@ mod handlers;
 mod helpers;
 mod middlware;
 mod models;
+mod openapi;
 mod provider;
 mod schemas;
 

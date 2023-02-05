@@ -8,8 +8,13 @@ use clap::{Arg, Command};
 use mtapp::{include_migrations_dir, App, Configuration, Migration};
 use mtapp_auth::{ClaimCheck, Claims};
 use sqlx::PgPool;
+use utoipa::OpenApi;
 
-use crate::{admin, commands, handlers, middlware::user_ban_check};
+use crate::{
+    admin, commands, handlers,
+    middlware::user_ban_check,
+    openapi::{InternalUserOpenApi, PublicUserOpenApi},
+};
 
 #[derive(Default, Clone)]
 pub struct UserApp {}
@@ -35,7 +40,7 @@ impl App for UserApp {
         Some(
             Router::new().route("/", post(handlers::signup)).merge(
                 Router::new()
-                    .route("/me", get(handlers::get).put(handlers::update))
+                    .route("/me", get(handlers::get).post(handlers::update))
                     .layer(ClaimCheck::new(|claims: Option<Claims>| claims.is_some())),
             ),
         )
@@ -99,5 +104,13 @@ impl App for UserApp {
                 unreachable!()
             }
         }
+    }
+
+    fn public_openapi(&mut self, _: &str) -> Option<utoipa::openapi::OpenApi> {
+        Some(PublicUserOpenApi::openapi())
+    }
+
+    fn internal_openapi(&mut self, _: &str) -> Option<utoipa::openapi::OpenApi> {
+        Some(InternalUserOpenApi::openapi())
     }
 }

@@ -1,19 +1,20 @@
 use sea_query::Cond;
 use seaqs::{
-    filters::{DateTimeFilterSet, StringFilterSet, UuidFilterSet},
+    filters::{DateTimeTzFilterSet, StringFilterSet, UuidFilterSet},
     Filter, ToCond, ToFieldCond,
 };
 use serde::Deserialize;
+use utoipa::{IntoParams, ToSchema};
 
 use crate::models::UserIden;
 
-#[derive(Debug, Default, Deserialize)]
+#[derive(Debug, Default, Deserialize, ToSchema)]
 pub struct UserLookupFilter<'a> {
     username: Option<StringFilterSet<'a>>,
     email: Option<StringFilterSet<'a>>,
-    last_logged_in_at: Option<DateTimeFilterSet>,
-    created_at: Option<DateTimeFilterSet>,
-    updated_at: Option<DateTimeFilterSet>,
+    last_logged_in_at: Option<DateTimeTzFilterSet>,
+    created_at: Option<DateTimeTzFilterSet>,
+    updated_at: Option<DateTimeTzFilterSet>,
 }
 
 impl ToCond for UserLookupFilter<'_> {
@@ -48,8 +49,10 @@ impl Filter for UserLookupFilter<'_> {
     ];
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, IntoParams)]
+#[into_params(parameter_in = Query)]
 pub struct UserDeleteFilter {
+    #[param(style = DeepObject, inline, explode)]
     id: UuidFilterSet,
 }
 

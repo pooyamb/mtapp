@@ -7,6 +7,7 @@ publish = false
 
 [dependencies]
 axum = "0.6"
+utoipa = { version = "3", features=["uuid", "chrono"] }
 
 clap = "4.1.1"
 dialoguer = "0.10"
@@ -21,7 +22,7 @@ sea-query = { version = "^0", default-features = false, features = [
     "attr",
 ] }
 sea-query-binder = { version = "0.3", features = ["sqlx-postgres", "with-chrono", "with-uuid"] }
-seaqs = "0"
+seaqs = { version = "0", features = ["openapi"] }
 
 serde = { version = "1.0.137", features = ["derive"] }
 serde-querystring-axum = "0.2.0"
