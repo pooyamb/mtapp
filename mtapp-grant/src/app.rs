@@ -29,12 +29,12 @@ impl App for GrantApp {
         Some(
             Router::new()
                 .route(
-                    "/grants/:user_id",
+                    "/",
                     get(admin::list)
                         .post(admin::create)
                         .delete(admin::batch_delete),
                 )
-                .route("/grants/:user_id/:scope_id", delete(admin::delete))
+                .route("/:grant_id", delete(admin::delete))
                 .layer(ClaimCheck::new(|claims: Option<Claims>| {
                     if let Some(claims) = claims {
                         claims.has_scope("superadmin") || claims.has_scope("admin")
