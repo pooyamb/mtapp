@@ -1,10 +1,11 @@
 use sea_query::Cond;
 use seaqs::{filters::UuidFilterSet, Filter, ToCond, ToFieldCond};
 use serde::Deserialize;
+use utoipa::{IntoParams, ToSchema};
 
 use crate::models::SessionIden;
 
-#[derive(Debug, Default, Deserialize)]
+#[derive(Debug, Default, Deserialize, ToSchema)]
 pub struct SessionLookupFilter {
     user_id: Option<UuidFilterSet>,
 }
@@ -24,8 +25,10 @@ impl Filter for SessionLookupFilter {
         &["user_id", "ip", "last_access_at", "updated_at"];
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, IntoParams)]
+#[into_params(parameter_in = Query)]
 pub struct SessionDeleteFilter {
+    #[param(style = DeepObject, inline, explode)]
     id: UuidFilterSet,
 }
 

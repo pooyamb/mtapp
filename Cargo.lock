@@ -2007,14 +2007,15 @@ dependencies = [
 
 [[package]]
 name = "seaqs"
-version = "0.0.1"
+version = "0.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ca7b8730e48a52b5e816f0447a442a207dbfea657c8e5b5994389d6af00534fb"
+checksum = "02fb94dd00f8db69a4d6d8459af1ca2c80f9e75857e8d3ab251a961265372e2b"
 dependencies = [
  "chrono",
  "sea-query",
  "serde",
  "serde_with",
+ "utoipa",
  "uuid",
 ]
 

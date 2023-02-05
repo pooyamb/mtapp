@@ -5,9 +5,11 @@ use mtapp::include_migrations_dir;
 use mtapp::App;
 use mtapp_auth::ClaimCheck;
 use mtapp_auth::Claims;
+use utoipa::OpenApi;
 
 use crate::admin;
 use crate::handlers;
+use crate::openapi::{InternalSessionOpenApi, PublicSessionOpenApi};
 
 #[derive(Default, Clone)]
 pub struct SessionApp {}
@@ -50,5 +52,13 @@ impl App for SessionApp {
 
     fn migrations(&mut self) -> Option<Vec<Box<dyn mtapp::Migration>>> {
         include_migrations_dir!("./migrations")
+    }
+
+    fn public_openapi(&mut self, _: &str) -> Option<utoipa::openapi::OpenApi> {
+        Some(PublicSessionOpenApi::openapi())
+    }
+
+    fn internal_openapi(&mut self, _: &str) -> Option<utoipa::openapi::OpenApi> {
+        Some(InternalSessionOpenApi::openapi())
     }
 }

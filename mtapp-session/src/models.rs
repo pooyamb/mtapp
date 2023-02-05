@@ -7,10 +7,11 @@ use sqlx::types::{
     Uuid,
 };
 use sqlx::{Error, Executor, FromRow, Postgres, Row};
+use utoipa::ToSchema;
 
 use crate::filters::{SessionDeleteFilter, SessionLookupFilter};
 
-#[derive(Serialize, FromRow)]
+#[derive(Serialize, FromRow, ToSchema)]
 #[enum_def]
 pub struct Session {
     pub(crate) id: Uuid,

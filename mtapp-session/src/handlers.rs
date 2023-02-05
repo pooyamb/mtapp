@@ -1,10 +1,26 @@
 use axum::{extract::Path, response::IntoResponse, Extension};
-use json_response::{JsonListMeta, JsonResponse};
-use mtapp_auth::{Claims, TokenBlacklist};
+use json_response::{InternalErrorResponse, JsonListMeta, JsonResponse};
+use mtapp_auth::{openapi_errors::AuthErrorAuthentication, Claims, TokenBlacklist};
 use sqlx::{types::Uuid, PgPool};
 
-use crate::{errors::SessionError, models::Session};
+use crate::{
+    errors::{utoipa_response::SessionErrorNotFound, SessionError},
+    models::Session,
+};
 
+#[utoipa::path(
+    get,
+    tag = "Session",
+    path = "/",
+    responses(
+        (status = 200, body=SessionList),
+        AuthErrorAuthentication,
+        InternalErrorResponse
+    ),
+    security(
+        ("jwt_token" = [])
+    )
+)]
 pub async fn list(
     claims: Claims,
     Extension(pool): Extension<PgPool>,
@@ -16,6 +32,23 @@ pub async fn list(
     Ok(JsonResponse::with_content(sessions).meta(JsonListMeta::default().total(total as usize)))
 }
 
+#[utoipa::path(
+    get,
+    tag = "Session",
+    path = "/{session_id}",
+    params(
+        ("session_id" = Uuid, Path,)
+    ),
+    responses(
+        (status = 200, body=Session),
+        AuthErrorAuthentication,
+        SessionErrorNotFound,
+        InternalErrorResponse
+    ),
+    security(
+        ("jwt_token" = [])
+    )
+)]
 pub async fn get(
     session_id: Option<Path<Uuid>>,
     claims: Claims,
@@ -33,6 +66,23 @@ pub async fn get(
     Ok(JsonResponse::with_content(session))
 }
 
+#[utoipa::path(
+    delete,
+    tag = "Session",
+    path = "/{session_id}",
+    params(
+        ("session_id" = Uuid, Path,)
+    ),
+    responses(
+        (status = 200, body=Session),
+        AuthErrorAuthentication,
+        SessionErrorNotFound,
+        InternalErrorResponse
+    ),
+    security(
+        ("jwt_token" = [])
+    )
+)]
 pub async fn delete(
     session_id: Path<Uuid>,
     claims: Claims,
