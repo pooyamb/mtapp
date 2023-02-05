@@ -1,6 +1,6 @@
 use sea_query::Cond;
 use seaqs::{
-    filters::{DateTimeFilterSet, StringFilterSet, UuidFilterSet},
+    filters::{DateTimeTzFilterSet, StringFilterSet, UuidFilterSet},
     Filter, ToCond, ToFieldCond,
 };
 use serde::Deserialize;
@@ -11,7 +11,7 @@ use crate::models::ScopeIden;
 #[derive(Debug, Default, Deserialize, ToSchema)]
 pub struct ScopeLookupFilter<'a> {
     name: Option<StringFilterSet<'a>>,
-    created_at: Option<DateTimeFilterSet>,
+    created_at: Option<DateTimeTzFilterSet>,
 }
 
 impl<'a> ToCond for ScopeLookupFilter<'a> {
