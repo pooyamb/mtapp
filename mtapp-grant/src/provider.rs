@@ -14,11 +14,8 @@ impl GrantProvider for Provider {
         Extension(pool): &Extension<PgPool>,
         user_id: Uuid,
     ) -> Result<Vec<String>, AuthError> {
-        Ok(Grant::get_grants(user_id, pool)
+        Ok(Grant::find_for_user(user_id, pool)
             .await
-            .map_err(AuthError::other)?
-            .into_iter()
-            .map(|row| row.scope_name)
-            .collect())
+            .map_err(AuthError::other)?)
     }
 }

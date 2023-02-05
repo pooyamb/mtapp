@@ -1378,8 +1378,13 @@ dependencies = [
  "mtapp-auth",
  "mtapp-scope",
  "mtapp-user",
+ "sea-query",
+ "sea-query-binder",
+ "seaqs",
  "serde",
+ "serde-querystring-axum",
  "sqlx",
+ "utoipa",
 ]
 
 [[package]]

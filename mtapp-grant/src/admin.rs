@@ -1,41 +1,53 @@
 use axum::{extract::Path, response::IntoResponse, Extension, Json};
-use json_response::JsonResponse;
+use json_response::{JsonListMeta, JsonResponse};
+use seaqs::QueryFilter;
+use serde_querystring_axum::QueryString;
 use sqlx::PgPool;
 
 use mtapp::Uuid;
 
-use crate::{errors::GrantError, models::Grant, schemas::GrantCreate};
+use crate::{
+    errors::GrantError,
+    filters::{GrantDeleteFilter, GrantLookupFilter},
+    models::Grant,
+    schemas::GrantCreate,
+};
 
 pub async fn list(
-    id: Path<Uuid>,
+    QueryString(query): QueryString<QueryFilter<GrantLookupFilter>>,
     Extension(pool): Extension<PgPool>,
-) -> Result<impl IntoResponse, GrantError> {
-    Ok(Grant::get_grants(*id, &pool)
-        .await
-        .map(JsonResponse::with_content)?)
+) -> impl IntoResponse {
+    let grants = Grant::find(&query, &pool).await?;
+    let count = Grant::count(&query, &pool).await?;
+
+    Result::<_, GrantError>::Ok(
+        JsonResponse::with_content(grants).meta(JsonListMeta::default().total(count as usize)),
+    )
 }
 
 pub async fn create(
-    user_id: Path<Uuid>,
     Extension(pool): Extension<PgPool>,
     Json(scope): Json<GrantCreate>,
-) -> Result<impl IntoResponse, GrantError> {
-    let grant = Grant::add_grant(*user_id, &scope.scope_name, &pool).await?;
-    Ok(JsonResponse::with_content(grant))
+) -> impl IntoResponse {
+    let grant = Grant::create(scope, &pool).await?;
+    Result::<_, GrantError>::Ok(JsonResponse::with_content(grant))
+}
+
+pub async fn batch_delete(
+    Extension(pool): Extension<PgPool>,
+    QueryString(query): QueryString<GrantDeleteFilter>,
+) -> impl IntoResponse {
+    let scopes = Grant::delete(&query, &pool).await?;
+    Result::<_, GrantError>::Ok(JsonResponse::with_content(scopes))
 }
 
 pub async fn delete(
-    Path((user_id, scope)): Path<(Uuid, String)>,
+    Path(grant_id): Path<Uuid>,
     Extension(pool): Extension<PgPool>,
-) -> Result<impl IntoResponse, GrantError> {
-    Grant::del_grant(user_id, &scope, &pool)
+) -> impl IntoResponse {
+    let grant = Grant::delete_by_id(grant_id, &pool)
         .await
         .map(JsonResponse::with_content)?;
 
-    let message = format!(
-        "Grant of user with id: {} from scope with name:{} has been deleted",
-        user_id, scope
-    );
-
-    Ok(JsonResponse::with_content(message))
+    Result::<_, GrantError>::Ok(JsonResponse::with_content(grant))
 }

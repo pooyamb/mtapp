@@ -28,7 +28,12 @@ impl App for GrantApp {
     fn internal_routes(&mut self) -> Option<Router> {
         Some(
             Router::new()
-                .route("/grants/:user_id", get(admin::list).post(admin::create))
+                .route(
+                    "/grants/:user_id",
+                    get(admin::list)
+                        .post(admin::create)
+                        .delete(admin::batch_delete),
+                )
                 .route("/grants/:user_id/:scope_id", delete(admin::delete))
                 .layer(ClaimCheck::new(|claims: Option<Claims>| {
                     if let Some(claims) = claims {

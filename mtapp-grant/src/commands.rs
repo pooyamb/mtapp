@@ -4,7 +4,7 @@ use sqlx::PgPool;
 use mtapp_scope::Scope;
 use mtapp_user::User;
 
-use crate::models::Grant;
+use crate::{models::Grant, schemas::GrantCreate};
 
 pub async fn manage_grants(pool: PgPool, recv_username: String) {
     let user = User::get_by_username(&recv_username, &pool)
@@ -15,14 +15,14 @@ pub async fn manage_grants(pool: PgPool, recv_username: String) {
         .await
         .expect("Failed to retrieve scopes.");
 
-    let grants = Grant::get_grants(user.id, &pool)
+    let grants = Grant::find_for_user(user.id, &pool)
         .await
         .expect("Failed to assign scopes");
 
     let marked_scopes = scopes
         .into_iter()
         .map(|r| {
-            if grants.iter().any(|g| g.scope_id == r.id) {
+            if grants.iter().any(|g| g == &r.name) {
                 (r, true)
             } else {
                 (r, false)
@@ -48,12 +48,17 @@ pub async fn manage_grants(pool: PgPool, recv_username: String) {
 
     for (idx, (scope, granted)) in marked_scopes.iter().enumerate() {
         if selected_scopes.contains(&idx) && !granted {
-            Grant::add_grant(user.id, &scope.name, &mut tx)
-                .await
-                .expect("Failed to assign scopes");
-        }
-        if !selected_scopes.contains(&idx) && *granted {
-            Grant::del_grant(user.id, &scope.name, &mut tx)
+            Grant::create(
+                GrantCreate {
+                    user_id: user.id,
+                    scope_id: scope.id,
+                },
+                &mut tx,
+            )
+            .await
+            .expect("Failed to assign scopes");
+        } else if !selected_scopes.contains(&idx) && *granted {
+            Grant::delete_by_ids(user.id, scope.id, &mut tx)
                 .await
                 .expect("Failed to assign scopes");
         }
