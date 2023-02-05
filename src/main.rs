@@ -4,9 +4,11 @@ use std::{
     str::FromStr,
 };
 
+use axum::Extension;
 use basteh::Storage;
 use basteh_memory::MemoryBackend;
 use clap::{arg, Command};
+use serde_querystring_axum::{ParseMode, QueryStringConfig};
 use sqlx::{
     postgres::{PgConnectOptions, PgPoolOptions},
     ConnectOptions, PgPool,
@@ -78,6 +80,7 @@ async fn main() {
             let internal_api_docs = app.internal_api_docs();
             let mut router = app.into_router();
             router = router
+                .layer(Extension(QueryStringConfig::new(ParseMode::Brackets)))
                 .merge(SwaggerUi::new("/api/dev/docs").url("/api/dev/api-docs.json", api_docs))
                 .merge(
                     SwaggerUi::new("/api/internals/docs")

@@ -1436,6 +1436,7 @@ dependencies = [
  "serde-querystring-axum",
  "sodiumoxide",
  "sqlx",
+ "utoipa",
  "validator",
 ]
 
@@ -1456,6 +1457,7 @@ dependencies = [
  "mtapp-scope",
  "mtapp-session",
  "mtapp-user",
+ "serde-querystring-axum",
  "simplelog",
  "sqlx",
  "tokio",
@@ -2008,8 +2010,7 @@ dependencies = [
 [[package]]
 name = "seaqs"
 version = "0.0.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "02fb94dd00f8db69a4d6d8459af1ca2c80f9e75857e8d3ab251a961265372e2b"
+source = "git+https://github.com/pooyamb/seaqs.git?branch=main#3b4cb12ea88042af57328e988620aff8e92d67c8"
 dependencies = [
  "chrono",
  "sea-query",

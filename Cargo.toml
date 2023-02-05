@@ -26,6 +26,7 @@ publish = false
 axum = "0.6"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 utoipa-swagger-ui = { version = "3", features = ["axum"] }
+serde-querystring-axum = "0.2"
 
 dotenvy = "0.15"
 log = "0.4"
@@ -59,3 +60,4 @@ json-response = { path = "./json-response/" }
 json-response-derive = { path = "./json-response-derive" }
 
 schemer = { git = "https://github.com/pooyamb/schemer.git", branch = "async" }
+seaqs = { git = "https://github.com/pooyamb/seaqs.git", branch = "main" }
