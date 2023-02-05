@@ -21,10 +21,10 @@ pub mod __private {
     pub mod utoipa {
         pub use utoipa::{
             openapi::{
-                ContentBuilder, KnownFormat, ObjectBuilder, RefOr, Response, ResponseBuilder,
-                Schema, SchemaFormat, SchemaType,
+                ContentBuilder, KnownFormat, ObjectBuilder, Ref, RefOr, Response, ResponseBuilder,
+                ResponsesBuilder, Schema, SchemaFormat, SchemaType,
             },
-            ToResponse, ToSchema,
+            IntoResponses, ToResponse, ToSchema,
         };
     }
 }

@@ -1,4 +1,4 @@
-use super::attrs::Attrs;
+use super::attrs::{Attrs, ExprRight};
 use crate::ctxt::Ctxt;
 use proc_macro2::{Span, TokenStream};
 use quote::quote;
@@ -65,7 +65,7 @@ impl JsonError {
         };
         attrs.set_optional("message");
         let allowed_fields = ["status", "code", "message"];
-        for attr in attrs.mut_inner().iter_mut() {
+        for attr in attrs.to_inner_mut().iter_mut() {
             if !allowed_fields.contains(&attr.ident.as_str()) {
                 ctxt.error_spanned_by(
                     &attr.left,
@@ -179,7 +179,7 @@ impl JsonError {
         }
     }
 
-    pub(crate) fn expand_utoipa_response(&self, name: &Ident) -> TokenStream {
+    fn expand_utoipa_response_method(&self, name: &Ident) -> TokenStream {
         match self.kind {
             JsonErrorKind::NaiveRequest => {
                 let (key, value) = self.attrs.utoipa_expand_unzip();
@@ -281,6 +281,60 @@ impl JsonError {
             }
         }
     }
+
+    fn expand_utoipa_intoresponse_method(&self) -> TokenStream {
+        let status = &self
+            .attrs
+            .to_inner()
+            .iter()
+            .filter(|attr| attr.ident == "status")
+            .map(|attr| match &attr.right {
+                ExprRight::Path(p) => {
+                    quote!(#p.as_u16().to_string())
+                }
+                _ => {
+                    unreachable!()
+                }
+            })
+            .next()
+            .unwrap_or_else(|| quote!("500"));
+
+        quote! {
+            json_response::__private::utoipa::ResponsesBuilder::new()
+                .response(
+                    #status,
+                    json_response::__private::utoipa::Ref::from_response_name(
+                        <Self as json_response::__private::utoipa::ToResponse>::response().0,
+                    ),
+                )
+                .build()
+                .into()
+        }
+    }
+
+    pub(crate) fn expand_utoipa_response(&self, type_ident: &Ident) -> TokenStream {
+        let name = Ident::new(&format!("{}{}", type_ident, self.ident), Span::call_site());
+
+        let response = self.expand_utoipa_response_method(&name);
+        let intoresponse = self.expand_utoipa_intoresponse_method();
+        quote!(
+            pub struct #name;
+            impl json_response::__private::utoipa::ToResponse<'static> for #name {
+                fn response() -> (&'static str, json_response::__private::utoipa::RefOr<json_response::__private::utoipa::Response>) {
+                    #response
+                }
+            }
+
+            impl json_response::__private::utoipa::IntoResponses for #name {
+                fn responses() -> std::collections::BTreeMap<
+                    String,
+                    json_response::__private::utoipa::RefOr<json_response::__private::utoipa::Response>,
+                > {
+                    #intoresponse
+                }
+            }
+        )
+    }
 }
 
 pub struct JsonErrors {
@@ -330,19 +384,7 @@ pub struct JsonErrorUtoipa {
 impl ToTokens for JsonErrorUtoipa {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         for err_type in &self.errors {
-            let name = Ident::new(
-                &format!("{}{}", self.ident, err_type.ident),
-                Span::call_site(),
-            );
-            let response = err_type.expand_utoipa_response(&name);
-            let gen = quote!(
-                pub struct #name;
-                impl json_response::__private::utoipa::ToResponse<'static> for #name {
-                    fn response() -> (&'static str, json_response::__private::utoipa::RefOr<json_response::__private::utoipa::Response>) {
-                        #response
-                    }
-                }
-            );
+            let gen = err_type.expand_utoipa_response(&self.ident);
             tokens.append_all(gen);
         }
     }

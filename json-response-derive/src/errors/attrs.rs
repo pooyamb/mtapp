@@ -76,7 +76,11 @@ impl Attrs {
         }
     }
 
-    pub(crate) fn mut_inner(&mut self) -> &mut Vec<Attr> {
+    pub(crate) fn to_inner(&self) -> &Vec<Attr> {
+        &self.0
+    }
+
+    pub(crate) fn to_inner_mut(&mut self) -> &mut Vec<Attr> {
         &mut self.0
     }
 

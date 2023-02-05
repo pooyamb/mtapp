@@ -1,9 +1,9 @@
 use utoipa::{
     openapi::{
-        ContentBuilder, KnownFormat, ObjectBuilder, RefOr, Response, ResponseBuilder, Schema,
-        SchemaFormat, SchemaType,
+        ContentBuilder, KnownFormat, ObjectBuilder, Ref, RefOr, Response, ResponseBuilder,
+        ResponsesBuilder, Schema, SchemaFormat, SchemaType,
     },
-    ToResponse, ToSchema,
+    IntoResponses, ToResponse, ToSchema,
 };
 
 use crate::{JsonError, JsonResponse};
@@ -106,5 +106,14 @@ impl ToResponse<'static> for InternalErrorResponse {
                 .build()
                 .into(),
         )
+    }
+}
+
+impl IntoResponses for InternalErrorResponse {
+    fn responses() -> std::collections::BTreeMap<String, RefOr<Response>> {
+        ResponsesBuilder::new()
+            .response("500", Ref::from_response_name(Self::response().0))
+            .build()
+            .into()
     }
 }
