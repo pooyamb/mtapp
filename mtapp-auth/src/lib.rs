@@ -12,3 +12,8 @@ pub use errors::AuthError;
 pub use extract::{Claims, TokenBlacklist};
 pub use middleware::ClaimCheck;
 pub use providers::{GrantProvider, SessionProvider, UserProvider};
+pub mod openapi_errors {
+    pub use crate::errors::utoipa_response::{
+        AuthErrorAuthentication, AuthErrorBadToken, AuthErrorCredentials, AuthErrorPermission,
+    };
+}

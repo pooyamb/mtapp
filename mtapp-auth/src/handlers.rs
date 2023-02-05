@@ -38,9 +38,9 @@ use crate::{
                 )
             )
         ),
-        (status = 401, response=AuthErrorCredentials),
-        (status = 403, response=AuthErrorPermission),
-        (status = 500, response=InternalErrorResponse),
+        AuthErrorCredentials,
+        AuthErrorPermission,
+        InternalErrorResponse,
     )
 )]
 pub async fn login<U, S, G>(
@@ -106,9 +106,9 @@ where
                 )
             )
         ),
-        (status = 401, response=AuthErrorBadToken),
-        (status = 403, response=AuthErrorPermission),
-        (status = 500, response=InternalErrorResponse),
+        AuthErrorBadToken,
+        AuthErrorPermission,
+        InternalErrorResponse,
     )
 )]
 pub async fn refresh<S, G>(
@@ -167,9 +167,9 @@ where
     ),
     responses(
         (status = 200, body=TokenData),
-        (status = 401, response=AuthErrorBadToken),
-        (status = 403, response=AuthErrorPermission),
-        (status = 500, response=InternalErrorResponse),
+        AuthErrorBadToken,
+        AuthErrorPermission,
+        InternalErrorResponse,
     )
 )]
 pub async fn logout<U, S>(
