@@ -8,6 +8,7 @@ Part of one of my hobby projects ported from actix to axum. Although it is not t
 - Sqlx for database connection
 - Postgresql for db
 - A hashmap in-memory KV store for jwt invalidation(switchable)
+- Utoipa for openapi generation
 
 ## Tools I used
 
@@ -48,6 +49,20 @@ And to assign roles(grant scopes) use:
 
 ```
 cargo run mtapp-grant modify <username>
+```
+
+## OpenApi docs
+
+There are 2 sets of docs available for public/internal apis.
+
+Public facing apis are served on:
+```
+http://{host}:{port}/api/dev/docs/
+```
+
+Internal apis are served on:
+```
+http://{host}:{port}/api/internals/docs/
 ```
 
 ## Add new apps
