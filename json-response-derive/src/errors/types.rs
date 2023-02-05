@@ -245,37 +245,9 @@ impl JsonError {
                 quote! {
                     (
                         "InternalError",
-                        json_response::__private::utoipa::ResponseBuilder::new()
-                            .content(
-                                "application/json",
-                                json_response::__private::utoipa::ContentBuilder::new()
-                                    .schema(
-                                        json_response::__private::utoipa::ObjectBuilder::new()
-                                            .property(
-                                                "status",
-                                                json_response::__private::utoipa::ObjectBuilder::new()
-                                                    .schema_type(json_response::__private::utoipa::SchemaType::Integer)
-                                                    .enum_values(Some([500]))
-                                                    .example(Some(500.into())),
-                                            )
-                                            .property(
-                                                "code",
-                                                json_response::__private::utoipa::ObjectBuilder::new()
-                                                    .schema_type(json_response::__private::utoipa::SchemaType::String)
-                                                    .enum_values(Some(["50000 internal-error"]))
-                                                    .example(Some("50000 internal-error".into())),
-                                            )
-                                            .property(
-                                                "content",
-                                                json_response::__private::utoipa::ObjectBuilder::new(),
-                                            )
-                                            .build(),
-                                    )
-                                    .build()
-                                    .into(),
-                            )
-                            .build()
-                            .into(),
+                        json_response::__private::utoipa::Ref::from_response_name(
+                            "InternalError",
+                        ).into(),
                     )
                 }
             }
