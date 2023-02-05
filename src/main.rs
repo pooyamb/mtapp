@@ -15,7 +15,7 @@ use sqlx::{
 };
 
 use mtapp::Reactor;
-use mtapp_auth::AuthApp;
+use mtapp_auth::{AuthApp, AuthConfig};
 use mtapp_grant::{GrantApp, Provider as GP};
 use mtapp_scope::ScopeApp;
 use mtapp_session::{Provider as SP, SessionApp};
@@ -35,7 +35,8 @@ async fn main() {
     let db = get_db(&db_url).await;
     let storage = get_storage();
 
-    let auth_app = AuthApp::<UP, SP, GP>::new(secret);
+    let auth_app =
+        AuthApp::<UP, SP, GP>::with_config(AuthConfig::new("auth_blacklist", 10 * 60, secret));
     let scope_app = ScopeApp::new();
     let user_app = UserApp::new();
     let grant_app = GrantApp::new();
