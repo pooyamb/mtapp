@@ -12,7 +12,7 @@ use crate::middleware::jwt_claims;
 use crate::openapi::get_open_api;
 use crate::providers::{GrantProvider, SessionProvider, UserProvider};
 
-const TOKENEXPIRY: u64 = 20;
+const TOKENEXPIRY: u64 = 24 * 60 * 60;
 
 #[derive(Clone)]
 pub struct AuthConfig {
