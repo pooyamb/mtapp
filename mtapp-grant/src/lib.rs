@@ -4,6 +4,7 @@ mod commands;
 mod errors;
 mod filters;
 mod models;
+mod openapi;
 mod provider;
 mod schemas;
 

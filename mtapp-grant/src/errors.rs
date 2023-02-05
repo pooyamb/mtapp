@@ -7,6 +7,8 @@ use json_response::ApiError;
 pub enum GrantError {
     #[request_error(status=StatusCode::NOT_FOUND, code="404001 resource-not-found")]
     NotFound,
+    #[request_error(status=StatusCode::CONFLICT, code="409003 grant-already-exist")]
+    AlreadyExist,
     #[internal_error]
     DatabaseError(sqlx::Error),
     #[internal_error]
@@ -27,6 +29,7 @@ impl From<sqlx::Error> for GrantError {
                 // It's hacky and should be converted into a more general way possiblity converted to ValidationError
                 let pg_error = db_err.downcast::<sqlx::postgres::PgDatabaseError>();
                 match pg_error.constraint() {
+                    Some("grants_uniq") => GrantError::AlreadyExist,
                     _ => GrantError::UnknownConstaintError(pg_error),
                 }
             }

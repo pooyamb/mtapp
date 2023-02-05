@@ -7,8 +7,9 @@ use clap::{Arg, ArgAction, ArgMatches, Command};
 use mtapp::App;
 use mtapp_auth::{ClaimCheck, Claims};
 use sqlx::PgPool;
+use utoipa::OpenApi;
 
-use crate::{admin, commands::manage_grants};
+use crate::{admin, commands::manage_grants, openapi::InternalGrantOpenApi};
 
 #[derive(Default)]
 pub struct GrantApp {}
@@ -68,5 +69,9 @@ impl App for GrantApp {
             .expect("Arg is required")
             .clone();
         manage_grants(pool, recv_username).await
+    }
+
+    fn internal_openapi(&mut self, _: &str) -> Option<utoipa::openapi::OpenApi> {
+        Some(InternalGrantOpenApi::openapi())
     }
 }
