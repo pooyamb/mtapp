@@ -7,6 +7,7 @@ publish = false
 
 [dependencies]
 axum = "0.6"
+utoipa = { version = "3", features=["uuid", "chrono"] }
 
 validator = { version = "0.16.0", features = ["derive"] }
 

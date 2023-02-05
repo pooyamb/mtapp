@@ -4,10 +4,11 @@ use seaqs::{
     Filter, ToCond, ToFieldCond,
 };
 use serde::Deserialize;
+use utoipa::{IntoParams, ToSchema};
 
 use crate::models::ScopeIden;
 
-#[derive(Debug, Default, Deserialize)]
+#[derive(Debug, Default, Deserialize, ToSchema)]
 pub struct ScopeLookupFilter<'a> {
     name: Option<StringFilterSet<'a>>,
     created_at: Option<DateTimeFilterSet>,
@@ -30,8 +31,10 @@ impl<'a> Filter for ScopeLookupFilter<'a> {
     const SORTABLE_FIELDS: &'static [&'static str] = &["name", "created_at"];
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, IntoParams)]
+#[into_params(parameter_in = Query)]
 pub struct ScopeDeleteFilter {
+    #[param(style = DeepObject, inline, explode)]
     id: UuidFilterSet,
 }
 

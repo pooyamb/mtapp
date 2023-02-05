@@ -1,8 +1,9 @@
 use axum::{routing::get, Router};
 use mtapp::{include_migrations_dir, App};
 use mtapp_auth::{ClaimCheck, Claims};
+use utoipa::OpenApi;
 
-use crate::admin;
+use crate::{admin, openapi::InternalScopeOpenApi};
 
 #[derive(Default)]
 pub struct ScopeApp {}
@@ -40,5 +41,9 @@ impl App for ScopeApp {
 
     fn migrations(&mut self) -> Option<Vec<Box<dyn mtapp::Migration>>> {
         include_migrations_dir!("./migrations")
+    }
+
+    fn internal_openapi(&mut self, _: &str) -> Option<utoipa::openapi::OpenApi> {
+        Some(InternalScopeOpenApi::openapi())
     }
 }

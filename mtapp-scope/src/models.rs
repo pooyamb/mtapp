@@ -8,10 +8,11 @@ use sqlx::types::{
     Uuid,
 };
 use sqlx::{Error, Executor, FromRow, Postgres, Row};
+use utoipa::ToSchema;
 
 use crate::filters::{ScopeDeleteFilter, ScopeLookupFilter};
 
-#[derive(Debug, FromRow, Serialize)]
+#[derive(Debug, FromRow, Serialize, ToSchema)]
 #[enum_def]
 pub struct Scope {
     pub id: Uuid,

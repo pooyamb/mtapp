@@ -1396,6 +1396,7 @@ dependencies = [
  "serde",
  "serde-querystring-axum",
  "sqlx",
+ "utoipa",
  "validator",
 ]
 
