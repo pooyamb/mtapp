@@ -34,8 +34,8 @@ env_logger = "0.10"
 clap = "4"
 simplelog = "0.12.0"
 
-basteh = "0.4.0-alpha.2"
-basteh-memory = "0.4.0-alpha.2"
+basteh = "0.4.0-alpha.4"
+basteh-memory = "0.4.0-alpha.4"
 sqlx = { version = "0.6.0", features = ["runtime-tokio-rustls", "postgres", "offline"] }
 
 mtapp = "0"

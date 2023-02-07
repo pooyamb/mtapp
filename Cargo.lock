@@ -158,9 +158,9 @@ checksum = "a4a4ddaa51a5bc52a6948f74c06d20aaaddb71924eab79b8c97a8c556e942d6a"
 
 [[package]]
 name = "basteh"
-version = "0.4.0-alpha.2"
+version = "0.4.0-alpha.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9696b2c6b20abd77f9986d19295cd5556f7b0742caef66e683cf1b246a07759f"
+checksum = "36e0db88f6a9b419bd926e4d89a607a43b38c10d2821693cdf2d6278d264f831"
 dependencies = [
  "async-trait",
  "log",
@@ -169,13 +169,13 @@ dependencies = [
 
 [[package]]
 name = "basteh-memory"
-version = "0.4.0-alpha.2"
+version = "0.4.0-alpha.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1491fc55d144a3e57b5064ee51cf9ee33da14de1362a1bfe9032221282cfd241"
+checksum = "0a7e995b2c07ea76beb5f610295d5ccc442f37254f61466fbd5ddf5802208418"
 dependencies = [
  "async-trait",
  "basteh",
- "futures",
+ "futures-util",
  "parking_lot 0.12.1",
  "thiserror",
  "tokio",
@@ -686,21 +686,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "futures"
-version = "0.3.26"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "13e2792b0ff0340399d58445b88fd9770e3489eff258a4cbc1523418f12abf84"
-dependencies = [
- "futures-channel",
- "futures-core",
- "futures-executor",
- "futures-io",
- "futures-sink",
- "futures-task",
- "futures-util",
-]
-
-[[package]]
 name = "futures-channel"
 version = "0.3.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -717,17 +702,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ec90ff4d0fe1f57d600049061dc6bb68ed03c7d2fbd697274c41805dcb3f8608"
 
 [[package]]
-name = "futures-executor"
-version = "0.3.26"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e8de0a35a6ab97ec8869e32a2473f4b1324459e14c29275d14b10cb1fd19b50e"
-dependencies = [
- "futures-core",
- "futures-task",
- "futures-util",
-]
-
-[[package]]
 name = "futures-intrusive"
 version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -736,23 +710,6 @@ dependencies = [
  "futures-core",
  "lock_api",
  "parking_lot 0.11.2",
-]
-
-[[package]]
-name = "futures-io"
-version = "0.3.26"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bfb8371b6fb2aeb2d280374607aeabfc99d95c72edfe51692e42d3d7f0d08531"
-
-[[package]]
-name = "futures-macro"
-version = "0.3.26"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "95a73af87da33b5acf53acfebdc339fe592ecf5357ac7c0a7734ab9d8c876a70"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
 ]
 
 [[package]]
@@ -773,16 +730,11 @@ version = "0.3.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9c1d6de3acfef38d2be4b1f543f553131788603495be83da675e180c8d6b7bd1"
 dependencies = [
- "futures-channel",
  "futures-core",
- "futures-io",
- "futures-macro",
  "futures-sink",
  "futures-task",
- "memchr",
  "pin-project-lite",
  "pin-utils",
- "slab",
 ]
 
 [[package]]
@@ -1696,9 +1648,9 @@ dependencies = [
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.50"
+version = "1.0.51"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6ef7d57beacfaf2d8aee5937dab7b7f28de3cb8b1828479bb5de2a7106f2bae2"
+checksum = "5d727cae5b39d21da60fa540906919ad737832fe0b1c165da3a34d6548c849d6"
 dependencies = [
  "unicode-ident",
 ]
@@ -2080,9 +2032,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.91"
+version = "1.0.92"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "877c235533714907a8c2464236f5c4b2a17262ef1bd71f38f35ea592c8da6883"
+checksum = "7434af0dc1cbd59268aa98b4c22c131c0584d2232f6fb166efb993e2832e896a"
 dependencies = [
  "itoa 1.0.5",
  "ryu",

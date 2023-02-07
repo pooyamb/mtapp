@@ -110,7 +110,7 @@ impl TokenBlacklist {
         Ok(self
             .storage
             .scope(self.config.blacklist_scope())
-            .set_expiring(jti, b"", self.config.get_token_expiry())
+            .set_expiring(jti, 0, self.config.get_token_expiry())
             .await?)
     }
 }

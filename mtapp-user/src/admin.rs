@@ -101,7 +101,7 @@ pub async fn batch_delete(
 ) -> impl IntoResponse {
     let users = User::delete(&query, &pool).await?;
     for user in users.iter() {
-        storage.scope("banned_user_ids").set(user.id, "").await?;
+        storage.scope("banned_user_ids").set(user.id, 0).await?;
     }
     Result::<_, UserError>::Ok(JsonResponse::with_content(users))
 }
@@ -188,7 +188,7 @@ pub async fn delete(
     Extension(pool): Extension<PgPool>,
 ) -> impl IntoResponse {
     let user = User::delete_by_id(*id, &pool).await?;
-    storage.scope("banned_user_ids").set(user.id, "").await?;
+    storage.scope("banned_user_ids").set(user.id, 0).await?;
 
     Result::<_, UserError>::Ok(JsonResponse::with_content(user))
 }

@@ -136,7 +136,7 @@ where
     // Blacklist the previous jti
     storage
         .scope(config.blacklist_scope())
-        .set_expiring(jti, b"", config.get_token_expiry())
+        .set_expiring(jti, 0, config.get_token_expiry())
         .await?;
 
     let jti = S::reset_jti(&session_data, &refresh_token).await?;
@@ -189,7 +189,7 @@ where
         // Blacklist the previous jti
         storage
             .scope(config.blacklist_scope())
-            .set_expiring(claims.jti, b"", config.get_token_expiry())
+            .set_expiring(claims.jti, 0, config.get_token_expiry())
             .await?;
     } else if let Some(cookie) = cookies.get("refresh-token") {
         let (jti, _) = S::find(&session_data, cookie.value()).await?;
@@ -197,7 +197,7 @@ where
         // Blacklist the previous jti
         storage
             .scope(config.blacklist_scope())
-            .set_expiring(jti, b"", config.get_token_expiry())
+            .set_expiring(jti, 0, config.get_token_expiry())
             .await?;
 
         S::delete_by_jti(&session_data, jti).await?;
