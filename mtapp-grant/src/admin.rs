@@ -1,20 +1,17 @@
 use axum::{extract::Path, response::IntoResponse, Extension, Json};
-use json_response::{InternalErrorResponse, JsonListMeta, JsonResponse};
+use json_resp::{JsonListMeta, JsonResponse};
 use seaqs::QueryFilter;
 use serde_querystring_axum::QueryString;
 use sqlx::PgPool;
 
 use mtapp::Uuid;
-use mtapp_auth::openapi_errors::{AuthErrorAuthentication, AuthErrorPermission};
+use mtapp_auth::AuthErrorOai;
 
 use crate::{
-    errors::{
-        utoipa_response::{GrantErrorAlreadyExist, GrantErrorNotFound},
-        GrantError,
-    },
+    errors::{GrantError, GrantErrorOai},
     filters::{GrantDeleteFilter, GrantLookupFilter},
     models::Grant,
-    schemas::GrantCreate,
+    schemas::{GrantCreate, GrantList},
 };
 
 type QueryGrantLookupFilter = QueryFilter<GrantLookupFilter>;
@@ -27,10 +24,10 @@ type QueryGrantLookupFilter = QueryFilter<GrantLookupFilter>;
         QueryGrantLookupFilter
     ),
     responses(
-        (status = 200, body=GrantList),
-        AuthErrorAuthentication,
-        AuthErrorPermission,
-        InternalErrorResponse
+        (status = 200, body=inline(JsonResponse<GrantList>)),
+        AuthErrorOai::Authentication,
+        AuthErrorOai::Permission,
+        GrantErrorOai::InternalError
     ),
     security(
         ("jwt_token" = [])
@@ -58,11 +55,11 @@ pub async fn list(
         description="Grant create"
     ),
     responses(
-        (status = 200, body=Grant),
-        AuthErrorAuthentication,
-        AuthErrorPermission,
-        GrantErrorAlreadyExist,
-        InternalErrorResponse
+        (status = 200, body=inline(JsonResponse<Grant>)),
+        AuthErrorOai::Authentication,
+        AuthErrorOai::Permission,
+        GrantErrorOai::AlreadyExist,
+        GrantErrorOai::InternalError
     ),
     security(
         ("jwt_token" = [])
@@ -84,10 +81,10 @@ pub async fn create(
         GrantDeleteFilter
     ),
     responses(
-        (status = 200, body=GrantList),
-        AuthErrorAuthentication,
-        AuthErrorPermission,
-        InternalErrorResponse
+        (status = 200, body=inline(JsonResponse<GrantList>)),
+        AuthErrorOai::Authentication,
+        AuthErrorOai::Permission,
+        GrantErrorOai::InternalError
     ),
     security(
         ("jwt_token" = [])
@@ -109,11 +106,11 @@ pub async fn batch_delete(
         ("grant_id" = Uuid, Path,)
     ),
     responses(
-        (status = 200, body=Grant),
-        AuthErrorAuthentication,
-        AuthErrorPermission,
-        GrantErrorNotFound,
-        InternalErrorResponse
+        (status = 200, body=inline(JsonResponse<Grant>)),
+        AuthErrorOai::Authentication,
+        AuthErrorOai::Permission,
+        GrantErrorOai::NotFound,
+        GrantErrorOai::InternalError
     ),
     security(
         ("jwt_token" = [])

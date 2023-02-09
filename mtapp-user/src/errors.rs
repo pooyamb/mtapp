@@ -2,21 +2,26 @@ use std::{error::Error, fmt};
 
 use axum::http::StatusCode;
 use basteh::StorageError;
-use json_response::ApiError;
+use json_resp::JsonError;
 
-#[derive(Debug, ApiError)]
+#[derive(Debug, JsonError)]
 pub enum UserError {
-    #[request_error(status=StatusCode::CONFLICT, code="409000 conflict-error")]
-    ValidationError(validator::ValidationErrors),
-    #[request_error(status=StatusCode::NOT_FOUND, code="404001 resource-not-found")]
+    #[json_error(request, status = 404, code = "404001 resource-not-found")]
     NotFound,
-    #[request_error(status=StatusCode::CONFLICT, code="409001 already-exist")]
+
+    #[json_error(request, status = 409, code = "409000 conflict-error")]
+    ValidationError(validator::ValidationErrors),
+
+    #[json_error(request, status = 409, code = "409001 already-exist")]
     DuplicateField(&'static str),
-    #[internal_error]
+
+    #[json_error(internal)]
     DatabaseError(sqlx::Error),
-    #[internal_error]
+
+    #[json_error(internal)]
     UnknownConstaintError(Box<sqlx::postgres::PgDatabaseError>),
-    #[internal_error]
+
+    #[json_error(internal)]
     Other(Box<dyn Error + Send>),
 }
 

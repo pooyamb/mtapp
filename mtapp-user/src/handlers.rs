@@ -1,14 +1,11 @@
 use axum::{response::IntoResponse, Extension, Json};
-use json_response::{InternalErrorResponse, JsonResponse};
-use mtapp_auth::{openapi_errors::AuthErrorAuthentication, Claims};
+use json_resp::{CombineErrors, JsonResponse};
+use mtapp_auth::{AuthErrorOai, Claims};
 use sqlx::PgPool;
 use validator::Validate;
 
 use crate::{
-    errors::{
-        utoipa_response::{UserErrorDuplicateField, UserErrorValidationError},
-        UserError,
-    },
+    errors::{UserError, UserErrorOai},
     models::User,
     schemas::{SelfUpdate, UserRegister},
 };
@@ -23,10 +20,9 @@ use crate::{
         description="User register"
     ),
     responses(
-        (status = 200, body=User),
-        UserErrorDuplicateField,
-        UserErrorValidationError,
-        InternalErrorResponse
+        (status = 200, body=inline(JsonResponse<User>)),
+        CombineErrors::<UserErrorOai::DuplicateField, UserErrorOai::ValidationError>,
+        UserErrorOai::InternalError
     ),
     security(
         ("jwt_token" = [])
@@ -46,9 +42,9 @@ pub async fn signup(
     tag = "User",
     path = "/me",
     responses(
-        (status = 200, body=User),
-        AuthErrorAuthentication,
-        InternalErrorResponse
+        (status = 200, body=inline(JsonResponse<User>)),
+        AuthErrorOai::Authentication,
+        UserErrorOai::InternalError
     ),
     security(
         ("jwt_token" = [])
@@ -69,9 +65,9 @@ pub async fn get(claims: Claims, Extension(pool): Extension<PgPool>) -> impl Int
         description="User register"
     ),
     responses(
-        (status = 200, body=User),
-        AuthErrorAuthentication,
-        InternalErrorResponse
+        (status = 200, body=inline(JsonResponse<User>)),
+        AuthErrorOai::Authentication,
+        UserErrorOai::InternalError
     ),
     security(
         ("jwt_token" = [])

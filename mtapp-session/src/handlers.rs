@@ -1,11 +1,12 @@
 use axum::{extract::Path, response::IntoResponse, Extension};
-use json_response::{InternalErrorResponse, JsonListMeta, JsonResponse};
-use mtapp_auth::{openapi_errors::AuthErrorAuthentication, Claims, TokenBlacklist};
+use json_resp::{JsonListMeta, JsonResponse};
+use mtapp_auth::{AuthErrorOai, Claims, TokenBlacklist};
 use sqlx::{types::Uuid, PgPool};
 
 use crate::{
-    errors::{utoipa_response::SessionErrorNotFound, SessionError},
+    errors::{SessionError, SessionErrorOai},
     models::Session,
+    schemas::SessionList,
 };
 
 #[utoipa::path(
@@ -13,9 +14,9 @@ use crate::{
     tag = "Session",
     path = "/",
     responses(
-        (status = 200, body=SessionList),
-        AuthErrorAuthentication,
-        InternalErrorResponse
+        (status = 200, body=inline(JsonResponse<SessionList>)),
+        AuthErrorOai::Authentication,
+        SessionErrorOai::InternalError
     ),
     security(
         ("jwt_token" = [])
@@ -40,10 +41,10 @@ pub async fn list(
         ("session_id" = Uuid, Path,)
     ),
     responses(
-        (status = 200, body=Session),
-        AuthErrorAuthentication,
-        SessionErrorNotFound,
-        InternalErrorResponse
+        (status = 200, body=inline(JsonResponse<Session>)),
+        AuthErrorOai::Authentication,
+        SessionErrorOai::NotFound,
+        SessionErrorOai::InternalError
     ),
     security(
         ("jwt_token" = [])
@@ -74,10 +75,10 @@ pub async fn get(
         ("session_id" = Uuid, Path,)
     ),
     responses(
-        (status = 200, body=Session),
-        AuthErrorAuthentication,
-        SessionErrorNotFound,
-        InternalErrorResponse
+        (status = 200, body=inline(JsonResponse<Session>)),
+        AuthErrorOai::Authentication,
+        SessionErrorOai::NotFound,
+        SessionErrorOai::InternalError
     ),
     security(
         ("jwt_token" = [])

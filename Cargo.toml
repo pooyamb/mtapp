@@ -1,8 +1,6 @@
 [workspace]
 members = [
     ".",
-    "json-response",
-    "json-response-derive",
     "mtapp",
     "schemer-migration",
     "schemer-migration-macros",
@@ -55,9 +53,6 @@ mtapp-session = { path = "./mtapp-session/" }
 
 schemer-migration = { path = "./schemer-migration/" }
 schemer-migration-macros = { path = "./schemer-migration-macros/" }
-
-json-response = { path = "./json-response/" }
-json-response-derive = { path = "./json-response-derive" }
 
 schemer = { git = "https://github.com/pooyamb/schemer.git", branch = "async" }
 seaqs = { git = "https://github.com/pooyamb/seaqs.git", branch = "main" }

@@ -7,7 +7,7 @@ publish = false
 
 [dependencies]
 axum = "0.6"
-utoipa = { version = "3", features=["uuid", "chrono"] }
+utoipa = { version = "3", features = ["uuid", "chrono"] }
 
 validator = { version = "0.16.0", features = ["derive"] }
 
@@ -23,7 +23,7 @@ seaqs = "0"
 
 serde = "1"
 serde-querystring-axum = "0.2.0"
-json-response = "0"
+json-resp = { version = "0.1.1", features = ["openapi", "log"] }
 
 mtapp = "0"
 mtapp-auth = { version = "0" }

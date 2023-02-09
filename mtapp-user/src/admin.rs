@@ -2,20 +2,17 @@ use axum::extract::Path;
 use axum::response::IntoResponse;
 use axum::{Extension, Json};
 use basteh::Storage;
-use json_response::{InternalErrorResponse, JsonListMeta, JsonResponse};
-use mtapp_auth::openapi_errors::{AuthErrorAuthentication, AuthErrorPermission};
+use json_resp::{CombineErrors, JsonListMeta, JsonResponse};
+use mtapp_auth::AuthErrorOai;
 use seaqs::QueryFilter;
 use serde_querystring_axum::QueryString;
 use sqlx::{types::Uuid, PgPool};
 use validator::Validate;
 
-use crate::errors::{
-    utoipa_response::{UserErrorDuplicateField, UserErrorNotFound, UserErrorValidationError},
-    UserError,
-};
+use crate::errors::{UserError, UserErrorOai};
 use crate::filters::{UserDeleteFilter, UserLookupFilter};
 use crate::models::User;
-use crate::schemas::{UserCreate, UserUpdate};
+use crate::schemas::{UserCreate, UserList, UserUpdate};
 
 type QueryUserLookupFilter = QueryFilter<UserLookupFilter<'static>>;
 
@@ -27,10 +24,10 @@ type QueryUserLookupFilter = QueryFilter<UserLookupFilter<'static>>;
         QueryUserLookupFilter
     ),
     responses(
-        (status = 200, body=UserList),
-        AuthErrorAuthentication,
-        AuthErrorPermission,
-        InternalErrorResponse
+        (status = 200, body=inline(JsonResponse<UserList>)),
+        AuthErrorOai::Authentication,
+        AuthErrorOai::Permission,
+        UserErrorOai::InternalError
     ),
     security(
         ("jwt_token" = [])
@@ -57,12 +54,11 @@ pub async fn list(
         description="User create"
     ),
     responses(
-        (status = 200, body=User),
-        AuthErrorAuthentication,
-        AuthErrorPermission,
-        UserErrorDuplicateField,
-        UserErrorValidationError,
-        InternalErrorResponse
+        (status = 200, body=inline(JsonResponse<User>)),
+        AuthErrorOai::Authentication,
+        AuthErrorOai::Permission,
+        CombineErrors::<UserErrorOai::DuplicateField, UserErrorOai::ValidationError>,
+        UserErrorOai::InternalError
     ),
     security(
         ("jwt_token" = [])
@@ -85,10 +81,10 @@ pub async fn create(
         UserDeleteFilter
     ),
     responses(
-        (status = 200, body=UserList),
-        AuthErrorAuthentication,
-        AuthErrorPermission,
-        InternalErrorResponse
+        (status = 200, body=inline(JsonResponse<UserList>)),
+        AuthErrorOai::Authentication,
+        AuthErrorOai::Permission,
+        UserErrorOai::InternalError
     ),
     security(
         ("jwt_token" = [])
@@ -114,11 +110,11 @@ pub async fn batch_delete(
         ("user_id" = Uuid, Path,)
     ),
     responses(
-        (status = 200, body=User),
-        AuthErrorAuthentication,
-        AuthErrorPermission,
-        UserErrorNotFound,
-        InternalErrorResponse
+        (status = 200, body=inline(JsonResponse<User>)),
+        AuthErrorOai::Authentication,
+        AuthErrorOai::Permission,
+        UserErrorOai::NotFound,
+        UserErrorOai::InternalError
     ),
     security(
         ("jwt_token" = [])
@@ -142,13 +138,13 @@ pub async fn get(id: Path<Uuid>, Extension(pool): Extension<PgPool>) -> impl Int
         description="User update"
     ),
     responses(
-        (status = 200, body=User),
-        AuthErrorAuthentication,
-        AuthErrorPermission,
-        UserErrorDuplicateField,
-        UserErrorValidationError,
-        UserErrorNotFound,
-        InternalErrorResponse
+        (status = 200, body=inline(JsonResponse<User>)),
+        AuthErrorOai::Authentication,
+        AuthErrorOai::Permission,
+        UserErrorOai::DuplicateField,
+        UserErrorOai::ValidationError,
+        UserErrorOai::NotFound,
+        UserErrorOai::InternalError
     ),
     security(
         ("jwt_token" = [])
@@ -172,11 +168,11 @@ pub async fn update(
         ("user_id" = Uuid, Path,)
     ),
     responses(
-        (status = 200, body=User),
-        AuthErrorAuthentication,
-        AuthErrorPermission,
-        UserErrorNotFound,
-        InternalErrorResponse
+        (status = 200, body=inline(JsonResponse<User>)),
+        AuthErrorOai::Authentication,
+        AuthErrorOai::Permission,
+        UserErrorOai::NotFound,
+        UserErrorOai::InternalError
     ),
     security(
         ("jwt_token" = [])

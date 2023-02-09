@@ -2,35 +2,32 @@ use std::{error::Error, fmt};
 
 use axum::http::StatusCode;
 use basteh::StorageError;
-use json_response::ApiError;
+use json_resp::JsonError;
 
-#[derive(Debug, ApiError)]
+#[derive(Debug, JsonError)]
 pub enum AuthError {
-    #[request_error(
-        status = StatusCode::UNAUTHORIZED,
-        code = "40100 not-authenticated",
-    )]
+    #[json_error(request, status = 401, code = "401000 not-authenticated")]
     Authentication,
-    #[request_error(
-        status = StatusCode::UNAUTHORIZED,
-        code = "40101 bad-credentials",
-    )]
+
+    #[json_error(request, status = 401, code = "401001 bad-credentials")]
     Credentials,
-    #[request_error(
-        status = StatusCode::UNAUTHORIZED, code = "40102 bad-token")]
+
+    #[json_error(request, status = 401, code = "401002 bad-token")]
     BadToken,
-    #[request_error(
-        status = StatusCode::FORBIDDEN,
-        code = "40300 not-authorized",
-    )]
+
+    #[json_error(request, status = 403, code = "403000 not-authorized")]
     Permission,
-    #[internal_error]
+
+    #[json_error(internal)]
     Configuration,
-    #[internal_error]
+
+    #[json_error(internal)]
     StorageError(StorageError),
-    #[internal_error]
+
+    #[json_error(internal)]
     DatabaseError(sqlx::Error),
-    #[internal_error]
+
+    #[json_error(internal)]
     Other(Box<dyn Error + Send>),
 }
 

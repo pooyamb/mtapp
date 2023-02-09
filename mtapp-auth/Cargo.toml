@@ -19,6 +19,6 @@ sqlx = { version = "0.6.0", features = ["postgres", "runtime-tokio-rustls", "uui
 basteh = "0.4.0-alpha.4"
 
 serde = { version = "1.0.137", features = ["derive"] }
-json-response = "0"
+json-resp = { version = "0.1.1", features = ["openapi", "log"] }
 
 mtapp = "0"

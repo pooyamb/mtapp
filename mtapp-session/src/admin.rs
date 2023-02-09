@@ -1,19 +1,17 @@
 use axum::extract::Path;
 use axum::response::IntoResponse;
 use axum::Extension;
-use json_response::{InternalErrorResponse, JsonListMeta, JsonResponse};
-use mtapp_auth::{
-    openapi_errors::{AuthErrorAuthentication, AuthErrorPermission},
-    TokenBlacklist,
-};
+use json_resp::{JsonListMeta, JsonResponse};
+use mtapp_auth::{AuthErrorOai, TokenBlacklist};
 use seaqs::QueryFilter;
 use serde_querystring_axum::QueryString;
 use sqlx::types::Uuid;
 use sqlx::PgPool;
 
-use crate::errors::{utoipa_response::SessionErrorNotFound, SessionError};
+use crate::errors::{SessionError, SessionErrorOai};
 use crate::filters::{SessionDeleteFilter, SessionLookupFilter};
 use crate::models::Session;
+use crate::schemas::SessionList;
 
 type QuerySessionLookupFilter = QueryFilter<SessionLookupFilter>;
 
@@ -25,10 +23,10 @@ type QuerySessionLookupFilter = QueryFilter<SessionLookupFilter>;
         QuerySessionLookupFilter
     ),
     responses(
-        (status = 200, body=SessionList),
-        AuthErrorAuthentication,
-        AuthErrorPermission,
-        InternalErrorResponse
+        (status = 200, body=inline(JsonResponse<SessionList>)),
+        AuthErrorOai::Authentication,
+        AuthErrorOai::Permission,
+        SessionErrorOai::InternalError
     ),
     security(
         ("jwt_token" = [])
@@ -51,10 +49,10 @@ pub async fn list(
         SessionDeleteFilter
     ),
     responses(
-        (status = 200, body=SessionList),
-        AuthErrorAuthentication,
-        AuthErrorPermission,
-        InternalErrorResponse
+        (status = 200, body=inline(JsonResponse<SessionList>)),
+        AuthErrorOai::Authentication,
+        AuthErrorOai::Permission,
+        SessionErrorOai::InternalError
     ),
     security(
         ("jwt_token" = [])
@@ -85,11 +83,11 @@ pub async fn batch_delete(
         ("session_id" = Uuid, Path,)
     ),
     responses(
-        (status = 200, body=SessionList),
-        AuthErrorAuthentication,
-        AuthErrorPermission,
-        SessionErrorNotFound,
-        InternalErrorResponse
+        (status = 200, body=inline(JsonResponse<Session>)),
+        AuthErrorOai::Authentication,
+        AuthErrorOai::Permission,
+        SessionErrorOai::NotFound,
+        SessionErrorOai::InternalError
     ),
     security(
         ("jwt_token" = [])
@@ -111,11 +109,11 @@ pub async fn get(
         ("session_id" = Uuid, Path,)
     ),
     responses(
-        (status = 200, body=SessionList),
-        AuthErrorAuthentication,
-        AuthErrorPermission,
-        SessionErrorNotFound,
-        InternalErrorResponse
+        (status = 200, body=inline(JsonResponse<Session>)),
+        AuthErrorOai::Authentication,
+        AuthErrorOai::Permission,
+        SessionErrorOai::NotFound,
+        SessionErrorOai::InternalError
     ),
     security(
         ("jwt_token" = [])

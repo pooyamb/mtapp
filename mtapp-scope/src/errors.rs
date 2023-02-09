@@ -1,17 +1,21 @@
 use std::fmt;
 
 use axum::http::StatusCode;
-use json_response::ApiError;
+use json_resp::JsonError;
 
-#[derive(Debug, ApiError)]
+#[derive(Debug, JsonError)]
+#[json_error(internal_code = "500000 internal-error")]
 pub enum ScopeError {
-    #[request_error(status=StatusCode::NOT_FOUND, code="404001 resource-not-found")]
+    #[json_error(request, status = 404, code = "404001 resource-not-found")]
     NotFound,
-    #[request_error(status=StatusCode::CONFLICT, code="409001 already-exist")]
+
+    #[json_error(request, status = 409, code = "409001 already-exist")]
     DuplicateField(&'static str),
-    #[internal_error]
+
+    #[json_error(internal)]
     DatabaseError(sqlx::Error),
-    #[internal_error]
+
+    #[json_error(internal)]
     UnknownConstaintError(Box<sqlx::postgres::PgDatabaseError>),
 }
 

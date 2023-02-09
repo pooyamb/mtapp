@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 axum = "0.6"
-utoipa = { version = "3", features=["uuid", "chrono"] }
+utoipa = { version = "3", features = ["uuid", "chrono"] }
 
 clap = "4"
 dialoguer = "0.10"
@@ -24,7 +24,7 @@ seaqs = "0"
 
 serde = { version = "1.0.137", features = ["derive"] }
 serde-querystring-axum = "0.2.0"
-json-response = "0"
+json-resp = "0.1.1"
 
 mtapp = "0"
 mtapp-auth = "0"

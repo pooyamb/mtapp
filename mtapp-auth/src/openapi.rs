@@ -1,31 +1,21 @@
-use json_response::{JsonError, JsonResponse};
 use utoipa::{
     openapi::security::{Flow, OAuth2, Password, Scopes, SecurityScheme},
     OpenApi,
 };
 
-use crate::{
-    errors::utoipa_response::{
-        AuthErrorAuthentication, AuthErrorBadToken, AuthErrorCredentials, AuthErrorPermission,
-    },
-    handlers::*,
-    schemas::TokenData,
-};
-
-type TokenDataJson = JsonResponse<TokenData>;
+use crate::{errors::AuthErrorOai, handlers::*, schemas::TokenData};
 
 #[derive(OpenApi)]
 #[openapi(
     paths(login, refresh, logout),
-    components(
-        schemas(TokenDataJson, JsonError),
-        responses(
-            AuthErrorAuthentication,
-            AuthErrorBadToken,
-            AuthErrorPermission,
-            AuthErrorCredentials
-        )
-    )
+    components(schemas(
+        TokenData,
+        AuthErrorOai::Authentication,
+        AuthErrorOai::BadToken,
+        AuthErrorOai::Permission,
+        AuthErrorOai::Credentials,
+        AuthErrorOai::InternalError
+    ))
 )]
 pub(crate) struct AuthOpenApi;
 

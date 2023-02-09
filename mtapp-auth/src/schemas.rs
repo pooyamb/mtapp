@@ -9,6 +9,9 @@ pub struct TokenData {
     pub expires_in: u64,
 }
 
+#[derive(ToSchema)]
+pub struct Message(String);
+
 #[derive(Deserialize, ToSchema, IntoParams)]
 pub struct Credentials {
     pub username: String,

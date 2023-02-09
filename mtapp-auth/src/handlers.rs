@@ -5,15 +5,15 @@ use axum::{
 };
 use axum_extra::extract::{cookie::Cookie, CookieJar};
 use basteh::Storage;
-use json_response::{InternalErrorResponse, JsonResponse};
+use json_resp::{JsonResponse};
 
 use crate::{
     app::AuthConfig,
-    errors::utoipa_response::{AuthErrorBadToken, AuthErrorCredentials, AuthErrorPermission},
+    errors::AuthErrorOai,
     errors::AuthError,
     extract::Claims,
     providers::{GrantProvider, SessionProvider, UserProvider},
-    schemas::{Credentials, TokenData, Flat},
+    schemas::{Credentials, TokenData, Flat, Message},
 };
 
 #[utoipa::path(
@@ -28,7 +28,7 @@ use crate::{
     responses(
         (
             status = 200,
-            body=TokenData,
+            body=inline(JsonResponse<TokenData>),
             description="Login was successful",
             headers(
                 (
@@ -38,9 +38,9 @@ use crate::{
                 )
             )
         ),
-        AuthErrorCredentials,
-        AuthErrorPermission,
-        InternalErrorResponse,
+        AuthErrorOai::Credentials,
+        AuthErrorOai::Permission,
+        AuthErrorOai::InternalError,
     )
 )]
 pub async fn login<U, S, G>(
@@ -97,7 +97,7 @@ where
     responses(
         (
             status = 200, 
-            body=TokenData, 
+            body=inline(JsonResponse<TokenData>), 
             headers(
                 (
                     "Set-Cookie" = String,
@@ -106,9 +106,9 @@ where
                 )
             )
         ),
-        AuthErrorBadToken,
-        AuthErrorPermission,
-        InternalErrorResponse,
+        AuthErrorOai::BadToken,
+        AuthErrorOai::Permission,
+        AuthErrorOai::InternalError,
     )
 )]
 pub async fn refresh<S, G>(
@@ -166,10 +166,10 @@ where
         ("refresh-token" = Option<String>, Cookie, description = "Refresh token")
     ),
     responses(
-        (status = 200, body=TokenData),
-        AuthErrorBadToken,
-        AuthErrorPermission,
-        InternalErrorResponse,
+        (status = 200, body=inline(JsonResponse<Message>)),
+        AuthErrorOai::BadToken,
+        AuthErrorOai::Permission,
+        AuthErrorOai::InternalError,
     )
 )]
 pub async fn logout<U, S>(

@@ -1,42 +1,21 @@
-use json_response::JsonResponse;
 use seaqs::filters::{DateTimeTzFilterSet, StringFilterSet, UuidFilterSet};
-use utoipa::{
-    openapi::{ArrayBuilder, RefOr, Schema},
-    OpenApi, ToSchema,
-};
+use utoipa::OpenApi;
 
-use crate::{
-    admin,
-    errors::utoipa_response::{
-        UserErrorDuplicateField, UserErrorNotFound, UserErrorValidationError,
-    },
-    handlers,
-    models::User,
-};
-
-#[derive(utoipa::ToResponse)]
-struct UserList(Vec<User>);
-
-impl ToSchema<'static> for UserList {
-    fn schema() -> (&'static str, RefOr<Schema>) {
-        (
-            "UserList",
-            ArrayBuilder::new().items(User::schema().1).build().into(),
-        )
-    }
-}
-
-type UserJson = JsonResponse<User>;
-type UserListJson = JsonResponse<UserList>;
+use crate::{admin, errors::UserErrorOai, handlers, models::User, schemas::UserList};
 
 #[derive(OpenApi)]
 #[openapi(
     info(description = "User management endpoints"),
     paths(handlers::signup, handlers::get, handlers::update),
-    components(
-        schemas(UserJson),
-        responses(UserErrorNotFound, UserErrorValidationError, UserErrorDuplicateField)
-    )
+    components(schemas(
+        // Response
+        User,
+
+        // Errors
+        UserErrorOai::NotFound,
+        UserErrorOai::ValidationError,
+        UserErrorOai::DuplicateField
+    ))
 )]
 pub(crate) struct PublicUserOpenApi;
 
@@ -51,15 +30,20 @@ pub(crate) struct PublicUserOpenApi;
         admin::update,
         admin::delete
     ),
-    components(
-        schemas(
-            UserJson,
-            UserListJson,
-            UuidFilterSet,
-            DateTimeTzFilterSet,
-            StringFilterSet
-        ),
-        responses(UserErrorNotFound, UserErrorValidationError, UserErrorDuplicateField),
-    )
+    components(schemas(
+        // Response
+        User,
+        UserList,
+
+        // Params
+        UuidFilterSet,
+        DateTimeTzFilterSet,
+        StringFilterSet,
+
+        // Errors
+        UserErrorOai::NotFound,
+        UserErrorOai::ValidationError,
+        UserErrorOai::DuplicateField
+    ))
 )]
 pub(crate) struct InternalUserOpenApi;

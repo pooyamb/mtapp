@@ -1,6 +1,11 @@
 use serde::Deserialize;
-use utoipa::ToSchema;
+use utoipa::{
+    openapi::{ArrayBuilder, RefOr, Schema},
+    ToSchema,
+};
 use validator::Validate;
+
+use crate::User;
 
 #[derive(Validate, Deserialize, ToSchema)]
 pub struct UserCreate {
@@ -55,5 +60,16 @@ impl Into<UserCreate> for UserRegister {
             password: self.password,
             email: Some(self.email),
         }
+    }
+}
+
+pub(crate) struct UserList(Vec<User>);
+
+impl ToSchema<'static> for UserList {
+    fn schema() -> (&'static str, RefOr<Schema>) {
+        (
+            "UserList",
+            ArrayBuilder::new().items(User::schema().1).build().into(),
+        )
     }
 }

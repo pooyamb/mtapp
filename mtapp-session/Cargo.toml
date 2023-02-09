@@ -8,7 +8,7 @@ publish = false
 [dependencies]
 axum = "0.6"
 axum-client-ip = "0.3"
-utoipa = { version = "3", features=["uuid", "chrono"] }
+utoipa = { version = "3", features = ["uuid", "chrono"] }
 
 sqlx = { version = "0.6.0", features = ["postgres", "runtime-tokio-rustls", "uuid", "chrono", "offline"] }
 sea-query = { version = "^0", default-features = false, features = [
@@ -22,7 +22,7 @@ seaqs = { version = "0", features = ["openapi"] }
 
 serde = { version = "1.0.137", features = ["derive"] }
 serde-querystring-axum = "0.2.0"
-json-response = "0"
+json-resp = "0.1.1"
 
 mtapp = "0"
 mtapp-auth = "0"

@@ -1,15 +1,18 @@
 use std::fmt;
 
 use axum::http::StatusCode;
-use json_response::ApiError;
+use json_resp::JsonError;
 
-#[derive(Debug, ApiError)]
+#[derive(Debug, JsonError)]
+#[json_error(internal_code = "500000 internal-error")]
 pub enum SessionError {
-    #[request_error(status=StatusCode::NOT_FOUND, code="404001 resource-not-found")]
+    #[json_error(request, status = 404, code = "404001 resource-not-found")]
     NotFound,
-    #[internal_error]
+
+    #[json_error(internal)]
     DatabaseError(sqlx::Error),
-    #[internal_error]
+
+    #[json_error(internal)]
     InternalError,
 }
 
