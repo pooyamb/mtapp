@@ -6,7 +6,7 @@ use crate::{admin, errors::UserErrorOai, handlers, models::User, schemas::UserLi
 #[derive(OpenApi)]
 #[openapi(
     info(description = "User management endpoints"),
-    paths(handlers::signup, handlers::get, handlers::update),
+    paths(handlers::signup, handlers::get_me, handlers::update),
     components(schemas(
         // Response
         User,

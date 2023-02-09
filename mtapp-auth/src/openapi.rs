@@ -3,13 +3,18 @@ use utoipa::{
     OpenApi,
 };
 
-use crate::{errors::AuthErrorOai, handlers::*, schemas::TokenData};
+use crate::{
+    errors::AuthErrorOai,
+    handlers::*,
+    schemas::{Message, TokenData},
+};
 
 #[derive(OpenApi)]
 #[openapi(
     paths(login, refresh, logout),
     components(schemas(
         TokenData,
+        Message,
         AuthErrorOai::Authentication,
         AuthErrorOai::BadToken,
         AuthErrorOai::Permission,

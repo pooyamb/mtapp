@@ -50,7 +50,7 @@ pub async fn signup(
         ("jwt_token" = [])
     )
 )]
-pub async fn get(claims: Claims, Extension(pool): Extension<PgPool>) -> impl IntoResponse {
+pub async fn get_me(claims: Claims, Extension(pool): Extension<PgPool>) -> impl IntoResponse {
     let user = User::get_by_id(claims.user_id, &pool).await?;
     Result::<_, UserError>::Ok(JsonResponse::with_content(user))
 }

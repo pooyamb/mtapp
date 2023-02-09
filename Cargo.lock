@@ -1049,9 +1049,9 @@ dependencies = [
 
 [[package]]
 name = "json-resp"
-version = "0.1.1"
+version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d8043a5e94af5610b9795457c0cbcace3c37455ced4b3dd3ac6befcdfb5ef77f"
+checksum = "399f76ee84e4196a277cccc32eb1c1da458564dda6189234184df277749e3dd1"
 dependencies = [
  "axum",
  "json-resp-derive",

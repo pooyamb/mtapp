@@ -40,7 +40,7 @@ impl App for UserApp {
         Some(
             Router::new().route("/", post(handlers::signup)).merge(
                 Router::new()
-                    .route("/me", get(handlers::get).post(handlers::update))
+                    .route("/me", get(handlers::get_me).post(handlers::update))
                     .layer(ClaimCheck::new(|claims: Option<Claims>| claims.is_some())),
             ),
         )
