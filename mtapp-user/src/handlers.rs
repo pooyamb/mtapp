@@ -67,6 +67,7 @@ pub async fn get_me(claims: Claims, Extension(pool): Extension<PgPool>) -> impl 
     responses(
         (status = 200, body=inline(JsonResponse<User>)),
         AuthErrorOai::Authentication,
+        UserErrorOai::ValidationError,
         UserErrorOai::InternalError
     ),
     security(

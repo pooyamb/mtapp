@@ -9,11 +9,11 @@ pub enum UserError {
     #[json_error(request, status = 404, code = "404001 resource-not-found")]
     NotFound,
 
-    #[json_error(request, status = 409, code = "409000 conflict-error")]
-    ValidationError(validator::ValidationErrors),
-
     #[json_error(request, status = 409, code = "409001 already-exist")]
     DuplicateField(&'static str),
+
+    #[json_error(request, status = 409, code = "409002 validation-error")]
+    ValidationError(validator::ValidationErrors),
 
     #[json_error(internal)]
     DatabaseError(sqlx::Error),
