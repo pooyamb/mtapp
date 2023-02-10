@@ -5,6 +5,7 @@ use basteh::StorageError;
 use json_resp::JsonError;
 
 #[derive(Debug, JsonError)]
+#[json_error(internal_code = "500000 internal-error")]
 pub enum AuthError {
     #[json_error(request, status = 401, code = "401000 not-authenticated")]
     Authentication,

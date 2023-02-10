@@ -27,6 +27,7 @@ pub struct ErrorDetail {
 }
 
 #[derive(Debug, JsonError)]
+#[json_error(internal_code = "500000 internal-error")]
 pub enum ExtractionError {
     #[json_error(request, status = 422, code = "422000 deserialize-failed")]
     FailedToDeserialize(ErrorDetail),

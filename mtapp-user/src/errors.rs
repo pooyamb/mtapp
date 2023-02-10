@@ -5,6 +5,7 @@ use basteh::StorageError;
 use json_resp::JsonError;
 
 #[derive(Debug, JsonError)]
+#[json_error(internal_code = "500000 internal-error")]
 pub enum UserError {
     #[json_error(request, status = 404, code = "404001 resource-not-found")]
     NotFound,
