@@ -26,31 +26,34 @@ pub async fn jwt_claims<B>(
     next: Next<B>,
 ) -> axum::response::Response {
     if let Some(token) = token {
-        if request.extensions().get::<Claims>().is_none() {
-            // try to extract the claims from header token
-            let claims = match Claims::from_token(token.token(), config.expose_secret()) {
-                Ok(val) => val,
-                Err(_) => {
-                    return (AuthError::BadToken).into_response();
-                }
-            };
+        debug_assert!(
+            request.extensions().get::<Claims>().is_none(),
+            "jwt_claims middleware is called twice"
+        );
 
-            let blacklisted = match storage
-                .scope(config.blacklist_scope())
-                .contains_key(claims.jti)
-                .await
-            {
-                Ok(a) => a,
-                // Internal error
-                Err(e) => return (AuthError::StorageError(e)).into_response(),
-            };
-
-            if blacklisted {
+        // try to extract the claims from header token
+        let claims = match Claims::from_token(token.token(), config.expose_secret()) {
+            Ok(val) => val,
+            Err(_) => {
                 return (AuthError::BadToken).into_response();
             }
+        };
 
-            request.extensions_mut().insert(claims.clone());
+        let blacklisted = match storage
+            .scope(config.blacklist_scope())
+            .contains_key(claims.jti)
+            .await
+        {
+            Ok(a) => a,
+            // Internal error
+            Err(e) => return (AuthError::StorageError(e)).into_response(),
+        };
+
+        if blacklisted {
+            return (AuthError::BadToken).into_response();
         }
+
+        request.extensions_mut().insert(claims.clone());
     }
 
     next.run(request).await
