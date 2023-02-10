@@ -150,14 +150,14 @@ impl Reactor<PgPool, Storage> {
 
         let mut router = Router::new();
 
-        if let Some(public_path) = self.public_path.as_ref().cloned() {
+        if self.public_path.is_some() {
             let sub_router = self.public_router();
-            router = router.merge(Router::new().nest(&public_path, sub_router));
+            router = router.merge(sub_router);
         }
 
-        if let Some(internal_path) = self.internal_path.as_ref().cloned() {
+        if self.internal_path.is_some() {
             let sub_router = self.internal_router();
-            router = router.merge(Router::new().nest(&internal_path, sub_router));
+            router = router.merge(sub_router);
         }
 
         for cfg in self.cfgs.iter() {
@@ -180,8 +180,9 @@ impl Reactor<PgPool, Storage> {
     fn public_router(&mut self) -> Router {
         let mut router = Router::new();
         for (path, app) in self.map.iter_mut() {
-            if let Some(routes) = app.public_routes() {
-                router = router.merge(Router::new().nest(path, routes));
+            let prefix = format!("{}{}", self.public_path.as_ref().unwrap(), path);
+            if let Some(routes) = app.public_routes(&prefix) {
+                router = router.merge(routes);
             }
         }
         for cfg in self.cfgs.iter() {
@@ -194,8 +195,9 @@ impl Reactor<PgPool, Storage> {
     fn internal_router(&mut self) -> Router {
         let mut router = Router::new();
         for (path, app) in self.map.iter_mut() {
-            if let Some(routes) = app.internal_routes() {
-                router = router.merge(Router::new().nest(path, routes));
+            let prefix = format!("{}{}", self.internal_path.as_ref().unwrap(), path);
+            if let Some(routes) = app.internal_routes(&prefix) {
+                router = router.merge(routes);
             }
         }
 

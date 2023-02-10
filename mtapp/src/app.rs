@@ -7,11 +7,11 @@ pub trait App {
     fn name(&self) -> &'static str;
 
     /// Public routes
-    fn public_routes(&mut self) -> Option<Router> {
+    fn public_routes(&mut self, _path_prefix: &str) -> Option<Router> {
         None
     }
     /// Internal routes
-    fn internal_routes(&mut self) -> Option<Router> {
+    fn internal_routes(&mut self, _path_prefix: &str) -> Option<Router> {
         None
     }
 

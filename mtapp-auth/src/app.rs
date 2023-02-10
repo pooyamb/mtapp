@@ -86,24 +86,27 @@ where
         cfg.global_state(move |ext| {
             ext.insert(config.clone());
         })
-        .base_router(|router| router.layer(from_fn(jwt_claims)));
+        .base_router(|router| 
+            // Register auth middleware
+            router.layer(from_fn(jwt_claims))
+        );
     }
 
-    fn public_routes(&mut self) -> Option<Router> {
+    fn public_routes(&mut self, path_prefix: &str) -> Option<Router> {
         Some(
             Router::new()
-                .route("/login", post(login::<U, S, G>))
-                .route("/refresh", post(refresh::<S, G>))
-                .route("/logout", post(logout::<U, S>)),
+                .route(&format!("{}/login", path_prefix), post(login::<U, S, G>))
+                .route(&format!("{}/refresh", path_prefix), post(refresh::<S, G>))
+                .route(&format!("{}/logout", path_prefix), post(logout::<U, S>)),
         )
     }
 
-    fn internal_routes(&mut self) -> Option<Router> {
+    fn internal_routes(&mut self, path_prefix: &str) -> Option<Router> {
         Some(
             Router::new()
-                .route("/login", post(login::<U, S, G>))
-                .route("/refresh", post(refresh::<S, G>))
-                .route("/logout", post(logout::<U, S>)),
+                .route(&format!("{}/login", path_prefix), post(login::<U, S, G>))
+                .route(&format!("{}/refresh", path_prefix), post(refresh::<S, G>))
+                .route(&format!("{}/logout", path_prefix), post(logout::<U, S>)),
         )
     }
 

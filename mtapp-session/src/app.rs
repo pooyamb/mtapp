@@ -25,21 +25,30 @@ impl App for SessionApp {
         "mtapp-session"
     }
 
-    fn public_routes(&mut self) -> Option<Router> {
+    fn public_routes(&mut self, path_prefix: &str) -> Option<Router> {
         Some(
             Router::new()
-                .route("/", get(handlers::list))
-                .route("/current", get(handlers::get))
-                .route("/:session_id", get(handlers::get).delete(handlers::delete))
+                .route(&format!("{}/", path_prefix), get(handlers::list))
+                .route(&format!("{}/current", path_prefix), get(handlers::get))
+                .route(
+                    &format!("{}/:session_id", path_prefix),
+                    get(handlers::get).delete(handlers::delete),
+                )
                 .layer(ClaimCheck::new(|claims: Option<Claims>| claims.is_some())),
         )
     }
 
-    fn internal_routes(&mut self) -> Option<Router> {
+    fn internal_routes(&mut self, path_prefix: &str) -> Option<Router> {
         Some(
             Router::new()
-                .route("/", get(admin::list).delete(admin::batch_delete))
-                .route("/:session_id", get(admin::get).delete(admin::delete))
+                .route(
+                    &format!("{}/", path_prefix),
+                    get(admin::list).delete(admin::batch_delete),
+                )
+                .route(
+                    &format!("{}/:session_id", path_prefix),
+                    get(admin::get).delete(admin::delete),
+                )
                 .layer(ClaimCheck::new(|claims: Option<Claims>| {
                     if let Some(claims) = claims {
                         claims.has_scope("superadmin") || claims.has_scope("admin")

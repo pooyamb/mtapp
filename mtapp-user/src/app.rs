@@ -36,27 +36,32 @@ impl App for UserApp {
         cfg.base_router(|router| router.layer(from_fn(user_ban_check)));
     }
 
-    fn public_routes(&mut self) -> Option<Router> {
+    fn public_routes(&mut self, path_prefix: &str) -> Option<Router> {
         Some(
-            Router::new().route("/", post(handlers::signup)).merge(
-                Router::new()
-                    .route("/me", get(handlers::get_me).post(handlers::update))
-                    .layer(ClaimCheck::new(|claims: Option<Claims>| claims.is_some())),
-            ),
+            Router::new()
+                .route(&format!("{}/", path_prefix), post(handlers::signup))
+                .merge(
+                    Router::new()
+                        .route(
+                            &format!("{}/me", path_prefix),
+                            get(handlers::get_me).post(handlers::update),
+                        )
+                        .layer(ClaimCheck::new(|claims: Option<Claims>| claims.is_some())),
+                ),
         )
     }
 
-    fn internal_routes(&mut self) -> Option<Router> {
+    fn internal_routes(&mut self, path_prefix: &str) -> Option<Router> {
         Some(
             Router::new()
                 .route(
-                    "/",
+                    &format!("{}/", path_prefix),
                     get(admin::list)
                         .post(admin::create)
                         .delete(admin::batch_delete),
                 )
                 .route(
-                    "/:user_id",
+                    &format!("{}/:user_id", path_prefix),
                     get(admin::get).post(admin::update).delete(admin::delete),
                 )
                 .layer(ClaimCheck::new(|claims: Option<Claims>| {

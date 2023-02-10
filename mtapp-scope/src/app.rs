@@ -19,16 +19,19 @@ impl App for ScopeApp {
         "mtapp-scope"
     }
 
-    fn internal_routes(&mut self) -> Option<Router> {
+    fn internal_routes(&mut self, path_prefix: &str) -> Option<Router> {
         Some(
             Router::new()
                 .route(
-                    "/",
+                    &format!("{}/", path_prefix),
                     get(admin::list)
                         .post(admin::create)
                         .delete(admin::batch_delete),
                 )
-                .route("/:scope_id", get(admin::get).delete(admin::delete))
+                .route(
+                    &format!("{}/:scope_id", path_prefix),
+                    get(admin::get).delete(admin::delete),
+                )
                 .layer(ClaimCheck::new(|claims: Option<Claims>| {
                     if let Some(claims) = claims {
                         claims.has_scope("superadmin") || claims.has_scope("admin")
