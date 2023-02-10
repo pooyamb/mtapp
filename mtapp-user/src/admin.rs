@@ -1,13 +1,14 @@
 use axum::extract::Path;
 use axum::response::IntoResponse;
-use axum::{Extension, Json};
+use axum::Extension;
 use basteh::Storage;
 use json_resp::{CombineErrors, JsonListMeta, JsonResponse};
-use mtapp_auth::AuthErrorOai;
 use seaqs::QueryFilter;
-use serde_querystring_axum::QueryString;
 use sqlx::{types::Uuid, PgPool};
 use validator::Validate;
+
+use mtapp::extractors::{oai, Json, Query};
+use mtapp_auth::AuthErrorOai;
 
 use crate::errors::{UserError, UserErrorOai};
 use crate::filters::{UserDeleteFilter, UserLookupFilter};
@@ -25,6 +26,7 @@ type QueryUserLookupFilter = QueryFilter<UserLookupFilter<'static>>;
     ),
     responses(
         (status = 200, body=inline(JsonResponse<UserList>)),
+        oai::QueryErrors,
         AuthErrorOai::Authentication,
         AuthErrorOai::Permission,
         UserErrorOai::InternalError
@@ -34,7 +36,7 @@ type QueryUserLookupFilter = QueryFilter<UserLookupFilter<'static>>;
     )
 )]
 pub async fn list(
-    QueryString(query): QueryString<QueryFilter<UserLookupFilter<'_>>>,
+    Query(query): Query<QueryFilter<UserLookupFilter<'_>>>,
     Extension(pool): Extension<PgPool>,
 ) -> impl IntoResponse {
     let users = User::find(&query, &pool).await?;
@@ -55,6 +57,7 @@ pub async fn list(
     ),
     responses(
         (status = 200, body=inline(JsonResponse<User>)),
+        oai::AllExtErrors,
         AuthErrorOai::Authentication,
         AuthErrorOai::Permission,
         CombineErrors::<UserErrorOai::DuplicateField, UserErrorOai::ValidationError>,
@@ -82,6 +85,7 @@ pub async fn create(
     ),
     responses(
         (status = 200, body=inline(JsonResponse<UserList>)),
+        oai::QueryErrors,
         AuthErrorOai::Authentication,
         AuthErrorOai::Permission,
         UserErrorOai::InternalError
@@ -91,7 +95,7 @@ pub async fn create(
     )
 )]
 pub async fn batch_delete(
-    QueryString(query): QueryString<UserDeleteFilter>,
+    Query(query): Query<UserDeleteFilter>,
     Extension(storage): Extension<Storage>,
     Extension(pool): Extension<PgPool>,
 ) -> impl IntoResponse {
@@ -111,6 +115,7 @@ pub async fn batch_delete(
     ),
     responses(
         (status = 200, body=inline(JsonResponse<User>)),
+        oai::PathErrors,
         AuthErrorOai::Authentication,
         AuthErrorOai::Permission,
         UserErrorOai::NotFound,
@@ -139,6 +144,7 @@ pub async fn get(id: Path<Uuid>, Extension(pool): Extension<PgPool>) -> impl Int
     ),
     responses(
         (status = 200, body=inline(JsonResponse<User>)),
+        oai::AllExtErrors,
         AuthErrorOai::Authentication,
         AuthErrorOai::Permission,
         UserErrorOai::DuplicateField,
@@ -169,6 +175,7 @@ pub async fn update(
     ),
     responses(
         (status = 200, body=inline(JsonResponse<User>)),
+        oai::PathErrors,
         AuthErrorOai::Authentication,
         AuthErrorOai::Permission,
         UserErrorOai::NotFound,

@@ -1,12 +1,12 @@
 use axum::extract::Path;
 use axum::response::IntoResponse;
-use axum::{Extension, Json};
+use axum::Extension;
 use json_resp::{JsonListMeta, JsonResponse};
 use seaqs::QueryFilter;
-use serde_querystring_axum::QueryString;
 use sqlx::types::Uuid;
 use sqlx::PgPool;
 
+use mtapp::extractors::{oai, Json, Query};
 use mtapp_auth::AuthErrorOai;
 
 use crate::errors::{ScopeError, ScopeErrorOai};
@@ -25,6 +25,7 @@ type QueryScopeLookupFilter = QueryFilter<ScopeLookupFilter<'static>>;
     ),
     responses(
         (status = 200, body=inline(JsonResponse<ScopeList>)),
+        oai::QueryErrors,
         AuthErrorOai::Authentication,
         AuthErrorOai::Permission,
         ScopeErrorOai::InternalError
@@ -35,7 +36,7 @@ type QueryScopeLookupFilter = QueryFilter<ScopeLookupFilter<'static>>;
 )]
 pub async fn list(
     Extension(pool): Extension<PgPool>,
-    QueryString(query): QueryString<QueryFilter<ScopeLookupFilter<'_>>>,
+    Query(query): Query<QueryFilter<ScopeLookupFilter<'_>>>,
 ) -> impl IntoResponse {
     let scopes = Scope::find(&query, &pool).await?;
     let total = Scope::count(&query, &pool).await?;
@@ -55,6 +56,7 @@ pub async fn list(
     ),
     responses(
         (status = 200, body=inline(JsonResponse<Scope>)),
+        oai::AllExtErrors,
         AuthErrorOai::Authentication,
         AuthErrorOai::Permission,
         ScopeErrorOai::DuplicateField,
@@ -81,6 +83,7 @@ pub async fn create(
     ),
     responses(
         (status = 200, body=inline(JsonResponse<ScopeList>)),
+        oai::QueryErrors,
         AuthErrorOai::Authentication,
         AuthErrorOai::Permission,
         ScopeErrorOai::InternalError
@@ -91,7 +94,7 @@ pub async fn create(
 )]
 pub async fn batch_delete(
     Extension(pool): Extension<PgPool>,
-    QueryString(query): QueryString<ScopeDeleteFilter>,
+    Query(query): Query<ScopeDeleteFilter>,
 ) -> impl IntoResponse {
     let scopes = Scope::delete(&query, &pool).await?;
     Result::<_, ScopeError>::Ok(JsonResponse::with_content(scopes))
@@ -106,6 +109,7 @@ pub async fn batch_delete(
     ),
     responses(
         (status = 200, body=inline(JsonResponse<Scope>)),
+        oai::PathErrors,
         AuthErrorOai::Authentication,
         AuthErrorOai::Permission,
         ScopeErrorOai::NotFound,
@@ -129,6 +133,7 @@ pub async fn get(id: Path<Uuid>, Extension(pool): Extension<PgPool>) -> impl Int
     ),
     responses(
         (status = 200, body=inline(JsonResponse<Scope>)),
+        oai::PathErrors,
         AuthErrorOai::Authentication,
         AuthErrorOai::Permission,
         ScopeErrorOai::NotFound,

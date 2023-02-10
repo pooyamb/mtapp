@@ -1,19 +1,21 @@
 use axum::{
     http::header::SET_COOKIE,
     response::{AppendHeaders, IntoResponse},
-    Extension, Form, extract::Query, Json,
+    Extension,
 };
 use axum_extra::extract::{cookie::Cookie, CookieJar};
 use basteh::Storage;
-use json_resp::{JsonResponse};
+use json_resp::JsonResponse;
+
+use mtapp::extractors::{oai, Form, Json, Query};
 
 use crate::{
     app::AuthConfig,
-    errors::AuthErrorOai,
     errors::AuthError,
+    errors::AuthErrorOai,
     extract::Claims,
     providers::{GrantProvider, SessionProvider, UserProvider},
-    schemas::{Credentials, TokenData, Flat, Message},
+    schemas::{Credentials, Flat, Message, TokenData},
 };
 
 #[utoipa::path(
@@ -28,8 +30,8 @@ use crate::{
     responses(
         (
             status = 200,
-            body=inline(JsonResponse<TokenData>),
-            description="Login was successful",
+            body = inline(JsonResponse<TokenData>),
+            description = "Login was successful",
             headers(
                 (
                     "Set-Cookie" = String,
@@ -38,6 +40,7 @@ use crate::{
                 )
             )
         ),
+        oai::AllExtErrors,
         AuthErrorOai::Credentials,
         AuthErrorOai::Permission,
         AuthErrorOai::InternalError,
@@ -80,10 +83,12 @@ where
         expires_in: config.get_token_expiry().as_secs(),
     };
 
-    if query.flat.unwrap_or_default(){
+    if query.flat.unwrap_or_default() {
         Result::<_, AuthError>::Ok((headers, Json(token_data)).into_response())
     } else {
-        Result::<_, AuthError>::Ok((headers, JsonResponse::with_content(token_data)).into_response())
+        Result::<_, AuthError>::Ok(
+            (headers, JsonResponse::with_content(token_data)).into_response(),
+        )
     }
 }
 
@@ -96,8 +101,8 @@ where
     ),
     responses(
         (
-            status = 200, 
-            body=inline(JsonResponse<TokenData>), 
+            status = 200,
+            body = inline(JsonResponse<TokenData>),
             headers(
                 (
                     "Set-Cookie" = String,
@@ -151,7 +156,7 @@ where
         expires_in: config.get_token_expiry().as_secs(),
     };
 
-    if query.flat.unwrap_or_default(){
+    if query.flat.unwrap_or_default() {
         Result::<_, AuthError>::Ok(Json(token_data).into_response())
     } else {
         Result::<_, AuthError>::Ok(JsonResponse::with_content(token_data).into_response())

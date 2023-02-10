@@ -1,8 +1,10 @@
-use axum::{response::IntoResponse, Extension, Json};
+use axum::{response::IntoResponse, Extension};
 use json_resp::{CombineErrors, JsonResponse};
-use mtapp_auth::{AuthErrorOai, Claims};
 use sqlx::PgPool;
 use validator::Validate;
+
+use mtapp::extractors::{oai, Json};
+use mtapp_auth::{AuthErrorOai, Claims};
 
 use crate::{
     errors::{UserError, UserErrorOai},
@@ -21,6 +23,7 @@ use crate::{
     ),
     responses(
         (status = 200, body=inline(JsonResponse<User>)),
+        oai::AllExtErrors,
         CombineErrors::<UserErrorOai::DuplicateField, UserErrorOai::ValidationError>,
         UserErrorOai::InternalError
     ),
@@ -66,6 +69,7 @@ pub async fn get_me(claims: Claims, Extension(pool): Extension<PgPool>) -> impl 
     ),
     responses(
         (status = 200, body=inline(JsonResponse<User>)),
+        oai::AllExtErrors,
         AuthErrorOai::Authentication,
         UserErrorOai::ValidationError,
         UserErrorOai::InternalError

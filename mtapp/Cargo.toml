@@ -16,6 +16,9 @@ clap = "4"
 cli-table = "0.4.7"
 indexmap = "1"
 
+serde = { version = "1.0.126", features = ["derive"] }
+serde-querystring = "0.2"
+
 sqlx = { version = "0.6.0", features = ["postgres", "runtime-tokio-rustls", "uuid", "chrono", "offline"] }
 basteh = "0.4.0-alpha.4"
 

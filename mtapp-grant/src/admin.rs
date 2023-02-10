@@ -1,10 +1,12 @@
-use axum::{extract::Path, response::IntoResponse, Extension, Json};
+use axum::{response::IntoResponse, Extension};
 use json_resp::{JsonListMeta, JsonResponse};
 use seaqs::QueryFilter;
-use serde_querystring_axum::QueryString;
 use sqlx::PgPool;
 
-use mtapp::Uuid;
+use mtapp::{
+    extractors::{oai, Json, Path, Query},
+    Uuid,
+};
 use mtapp_auth::AuthErrorOai;
 
 use crate::{
@@ -24,7 +26,11 @@ type QueryGrantLookupFilter = QueryFilter<GrantLookupFilter>;
         QueryGrantLookupFilter
     ),
     responses(
-        (status = 200, body=inline(JsonResponse<GrantList>)),
+        (
+            status = 200,
+            body = inline(JsonResponse<GrantList>)
+        ),
+        oai::QueryErrors,
         AuthErrorOai::Authentication,
         AuthErrorOai::Permission,
         GrantErrorOai::InternalError
@@ -34,7 +40,7 @@ type QueryGrantLookupFilter = QueryFilter<GrantLookupFilter>;
     )
 )]
 pub async fn list(
-    QueryString(query): QueryString<QueryFilter<GrantLookupFilter>>,
+    Query(query): Query<QueryFilter<GrantLookupFilter>>,
     Extension(pool): Extension<PgPool>,
 ) -> impl IntoResponse {
     let grants = Grant::find(&query, &pool).await?;
@@ -56,6 +62,7 @@ pub async fn list(
     ),
     responses(
         (status = 200, body=inline(JsonResponse<Grant>)),
+        oai::AllExtErrors,
         AuthErrorOai::Authentication,
         AuthErrorOai::Permission,
         GrantErrorOai::AlreadyExist,
@@ -82,6 +89,7 @@ pub async fn create(
     ),
     responses(
         (status = 200, body=inline(JsonResponse<GrantList>)),
+        oai::QueryErrors,
         AuthErrorOai::Authentication,
         AuthErrorOai::Permission,
         GrantErrorOai::InternalError
@@ -92,7 +100,7 @@ pub async fn create(
 )]
 pub async fn batch_delete(
     Extension(pool): Extension<PgPool>,
-    QueryString(query): QueryString<GrantDeleteFilter>,
+    Query(query): Query<GrantDeleteFilter>,
 ) -> impl IntoResponse {
     let scopes = Grant::delete(&query, &pool).await?;
     Result::<_, GrantError>::Ok(JsonResponse::with_content(scopes))
@@ -107,6 +115,7 @@ pub async fn batch_delete(
     ),
     responses(
         (status = 200, body=inline(JsonResponse<Grant>)),
+        oai::PathErrors,
         AuthErrorOai::Authentication,
         AuthErrorOai::Permission,
         GrantErrorOai::NotFound,

@@ -22,7 +22,6 @@ sea-query-binder = { version = "0.3", features = ["sqlx-postgres", "with-chrono"
 seaqs = "0"
 
 serde = "1"
-serde-querystring-axum = "0.2.0"
 json-resp = { version = "0.1.1", features = ["openapi", "log"] }
 
 mtapp = "0"

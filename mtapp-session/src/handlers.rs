@@ -1,7 +1,9 @@
-use axum::{extract::Path, response::IntoResponse, Extension};
+use axum::{response::IntoResponse, Extension};
 use json_resp::{JsonListMeta, JsonResponse};
-use mtapp_auth::{AuthErrorOai, Claims, TokenBlacklist};
 use sqlx::{types::Uuid, PgPool};
+
+use mtapp::extractors::{oai, Path};
+use mtapp_auth::{AuthErrorOai, Claims, TokenBlacklist};
 
 use crate::{
     errors::{SessionError, SessionErrorOai},
@@ -42,6 +44,7 @@ pub async fn list(
     ),
     responses(
         (status = 200, body=inline(JsonResponse<Session>)),
+        oai::PathErrors,
         AuthErrorOai::Authentication,
         SessionErrorOai::NotFound,
         SessionErrorOai::InternalError
@@ -76,6 +79,7 @@ pub async fn get(
     ),
     responses(
         (status = 200, body=inline(JsonResponse<Session>)),
+        oai::PathErrors,
         AuthErrorOai::Authentication,
         SessionErrorOai::NotFound,
         SessionErrorOai::InternalError

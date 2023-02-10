@@ -1,12 +1,11 @@
-use axum::extract::Path;
-use axum::response::IntoResponse;
-use axum::Extension;
+use axum::{response::IntoResponse, Extension};
 use json_resp::{JsonListMeta, JsonResponse};
-use mtapp_auth::{AuthErrorOai, TokenBlacklist};
 use seaqs::QueryFilter;
-use serde_querystring_axum::QueryString;
 use sqlx::types::Uuid;
 use sqlx::PgPool;
+
+use mtapp::extractors::{oai, Path, Query};
+use mtapp_auth::{AuthErrorOai, TokenBlacklist};
 
 use crate::errors::{SessionError, SessionErrorOai};
 use crate::filters::{SessionDeleteFilter, SessionLookupFilter};
@@ -24,6 +23,7 @@ type QuerySessionLookupFilter = QueryFilter<SessionLookupFilter>;
     ),
     responses(
         (status = 200, body=inline(JsonResponse<SessionList>)),
+        oai::QueryErrors,
         AuthErrorOai::Authentication,
         AuthErrorOai::Permission,
         SessionErrorOai::InternalError
@@ -33,7 +33,7 @@ type QuerySessionLookupFilter = QueryFilter<SessionLookupFilter>;
     )
 )]
 pub async fn list(
-    QueryString(query): QueryString<QueryFilter<SessionLookupFilter>>,
+    Query(query): Query<QueryFilter<SessionLookupFilter>>,
     Extension(pool): Extension<PgPool>,
 ) -> Result<impl IntoResponse, SessionError> {
     let users = Session::find(&query, &pool).await?;
@@ -50,6 +50,7 @@ pub async fn list(
     ),
     responses(
         (status = 200, body=inline(JsonResponse<SessionList>)),
+        oai::QueryErrors,
         AuthErrorOai::Authentication,
         AuthErrorOai::Permission,
         SessionErrorOai::InternalError
@@ -59,7 +60,7 @@ pub async fn list(
     )
 )]
 pub async fn batch_delete(
-    QueryString(query): QueryString<SessionDeleteFilter>,
+    Query(query): Query<SessionDeleteFilter>,
     Extension(pool): Extension<PgPool>,
     blacklist: TokenBlacklist,
 ) -> Result<impl IntoResponse, SessionError> {
@@ -84,6 +85,7 @@ pub async fn batch_delete(
     ),
     responses(
         (status = 200, body=inline(JsonResponse<Session>)),
+        oai::PathErrors,
         AuthErrorOai::Authentication,
         AuthErrorOai::Permission,
         SessionErrorOai::NotFound,
@@ -110,6 +112,7 @@ pub async fn get(
     ),
     responses(
         (status = 200, body=inline(JsonResponse<Session>)),
+        oai::PathErrors,
         AuthErrorOai::Authentication,
         AuthErrorOai::Permission,
         SessionErrorOai::NotFound,

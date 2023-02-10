@@ -13,12 +13,12 @@ use clap::{ArgMatches, Command};
 use indexmap::IndexMap;
 use sqlx::PgPool;
 use tower::Service;
-use utoipa::{
-    openapi::{self, PathsBuilder},
-    OpenApi,
-};
+use utoipa::openapi::{OpenApi, PathsBuilder};
 
-use crate::app::{App, Configuration};
+use crate::{
+    app::{App, Configuration},
+    openapi::generate_openapi,
+};
 
 pub struct Reactor<D, S> {
     map: IndexMap<&'static str, Box<dyn App>>,
@@ -206,12 +206,8 @@ impl Reactor<PgPool, Storage> {
         router
     }
 
-    pub fn public_api_docs(&mut self) -> openapi::OpenApi {
-        #[derive(OpenApi)]
-        #[openapi(info(description = "Api documents for mtapp", version = "0.1.0"))]
-        struct Api;
-
-        let mut api = Api::openapi();
+    pub fn public_api_docs(&mut self) -> OpenApi {
+        let mut api = generate_openapi("MyApp openapi docs", "0.1.0");
 
         let public_path = if let Some(public_path) = self.public_path.as_ref().cloned() {
             public_path
@@ -239,12 +235,8 @@ impl Reactor<PgPool, Storage> {
         api
     }
 
-    pub fn internal_api_docs(&mut self) -> openapi::OpenApi {
-        #[derive(OpenApi)]
-        #[openapi(info(description = "Internal api document for mtapp", version = "0.1.0"))]
-        struct Api;
-
-        let mut api = Api::openapi();
+    pub fn internal_api_docs(&mut self) -> OpenApi {
+        let mut api = generate_openapi("MyApp internal openapi docs", "0.1.0");
 
         let internal_path = if let Some(internal_path) = self.internal_path.as_ref().cloned() {
             internal_path
