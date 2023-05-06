@@ -7,7 +7,7 @@ publish = false
 
 [dependencies]
 axum = "0.6"
-axum-client-ip = "0.3"
+axum-client-ip = "0.4"
 utoipa = { version = "3", features = ["uuid", "chrono"] }
 
 sqlx = { version = "0.6.0", features = ["postgres", "runtime-tokio-rustls", "uuid", "chrono", "offline"] }

@@ -11,7 +11,7 @@ use axum::http::{Request, Response};
 use axum::middleware::Next;
 use axum::response::IntoResponse;
 use axum::{BoxError, Extension, TypedHeader};
-use basteh::Storage;
+use basteh::Basteh;
 use tower::{Layer, Service};
 
 use crate::app::AuthConfig;
@@ -20,7 +20,7 @@ use crate::extract::Claims;
 
 pub async fn jwt_claims<B>(
     config: Extension<AuthConfig>,
-    storage: Extension<Storage>,
+    storage: Extension<Basteh>,
     token: Option<TypedHeader<Authorization<Bearer>>>,
     mut request: Request<B>,
     next: Next<B>,
@@ -46,7 +46,7 @@ pub async fn jwt_claims<B>(
         {
             Ok(a) => a,
             // Internal error
-            Err(e) => return (AuthError::StorageError(e)).into_response(),
+            Err(e) => return (AuthError::BastehError(e)).into_response(),
         };
 
         if blacklisted {

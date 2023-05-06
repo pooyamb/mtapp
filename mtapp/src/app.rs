@@ -1,5 +1,5 @@
 use axum::{http::Extensions, Router};
-use schemer_migration::Migration;
+use smig_lib::Migration;
 use utoipa::openapi::OpenApi;
 
 #[axum::async_trait(?Send)]

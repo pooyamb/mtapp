@@ -4,7 +4,7 @@ use axum::{
     Extension,
 };
 use axum_extra::extract::{cookie::Cookie, CookieJar};
-use basteh::Storage;
+use basteh::Basteh;
 use json_resp::JsonResponse;
 
 use mtapp::extractors::{oai, Form, Json, Query};
@@ -118,7 +118,7 @@ where
 )]
 pub async fn refresh<S, G>(
     config: Extension<AuthConfig>,
-    storage: Extension<Storage>,
+    storage: Extension<Basteh>,
     query: Query<Flat>,
     session_data: S::Data<()>,
     grants_data: G::Data<()>,
@@ -179,7 +179,7 @@ where
 )]
 pub async fn logout<U, S>(
     config: Extension<AuthConfig>,
-    storage: Extension<Storage>,
+    storage: Extension<Basteh>,
     claims: Option<Extension<Claims>>,
     cookies: CookieJar,
     session_data: S::Data<()>,

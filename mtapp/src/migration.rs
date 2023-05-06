@@ -2,7 +2,7 @@ use std::{borrow::Cow, collections::HashMap};
 
 use sqlx::PgPool;
 
-use schemer_migration::{AppMigration, Migration, Migrator, PgAdapter};
+use smig_lib::{AppMigration, Migration, Migrator, PgAdapter};
 
 use crate::App;
 

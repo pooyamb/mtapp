@@ -1,7 +1,7 @@
 use axum::extract::Path;
 use axum::response::IntoResponse;
 use axum::Extension;
-use basteh::Storage;
+use basteh::Basteh;
 use json_resp::{CombineErrors, JsonListMeta, JsonResponse};
 use seaqs::QueryFilter;
 use sqlx::{types::Uuid, PgPool};
@@ -96,7 +96,7 @@ pub async fn create(
 )]
 pub async fn batch_delete(
     Query(query): Query<UserDeleteFilter>,
-    Extension(storage): Extension<Storage>,
+    Extension(storage): Extension<Basteh>,
     Extension(pool): Extension<PgPool>,
 ) -> impl IntoResponse {
     let users = User::delete(&query, &pool).await?;
@@ -187,7 +187,7 @@ pub async fn update(
 )]
 pub async fn delete(
     id: Path<Uuid>,
-    Extension(storage): Extension<Storage>,
+    Extension(storage): Extension<Basteh>,
     Extension(pool): Extension<PgPool>,
 ) -> impl IntoResponse {
     let user = User::delete_by_id(*id, &pool).await?;

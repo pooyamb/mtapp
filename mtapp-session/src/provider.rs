@@ -1,5 +1,5 @@
 use axum::{headers::UserAgent, Extension, TypedHeader};
-use axum_client_ip::ClientIp;
+use axum_client_ip::InsecureClientIp;
 use mtapp_auth::{AuthError, SessionProvider};
 use sqlx::{types::Uuid, PgPool};
 
@@ -15,8 +15,11 @@ pub struct Provider;
 
 #[axum::async_trait]
 impl SessionProvider for Provider {
-    type Data<S: Send + Sync + 'static> =
-        (Extension<PgPool>, TypedHeader<UserAgent>, Option<ClientIp>);
+    type Data<S: Send + Sync + 'static> = (
+        Extension<PgPool>,
+        TypedHeader<UserAgent>,
+        Option<InsecureClientIp>,
+    );
 
     async fn make<S: Send + Sync + 'static>(
         (Extension(pool), TypedHeader(user_agent), ip): &Self::Data<S>,

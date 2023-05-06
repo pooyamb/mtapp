@@ -3,7 +3,7 @@ use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use axum::extract::FromRequestParts;
-use basteh::Storage;
+use basteh::Basteh;
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header as TokenHeader, Validation};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -102,7 +102,7 @@ impl Deref for Claims {
 /// Used to blacklist tokens
 pub struct TokenBlacklist {
     config: AuthConfig,
-    storage: Storage,
+    storage: Basteh,
 }
 
 impl TokenBlacklist {
@@ -130,7 +130,7 @@ impl<S: Sync> FromRequestParts<S> for TokenBlacklist {
             .clone();
         let storage = parts
             .extensions
-            .get::<Storage>()
+            .get::<Basteh>()
             .ok_or(AuthError::Configuration)?
             .clone();
 

@@ -1,15 +1,5 @@
 [workspace]
-members = [
-    ".",
-    "mtapp",
-    "schemer-migration",
-    "schemer-migration-macros",
-    "mtapp-auth",
-    "mtapp-scope",
-    "mtapp-user",
-    "mtapp-grant",
-    "mtapp-session",
-]
+members = [".", "mtapp", "mtapp-auth", "mtapp-scope", "mtapp-user", "mtapp-grant", "mtapp-session"]
 
 resolver = "2"
 
@@ -32,8 +22,8 @@ env_logger = "0.10"
 clap = "4"
 simplelog = "0.12.0"
 
-basteh = "0.4.0-alpha.4"
-basteh-memory = "0.4.0-alpha.4"
+basteh = "=0.4.0-alpha.5"
+basteh-memory = "=0.4.0-alpha.5"
 sqlx = { version = "0.6.0", features = ["runtime-tokio-rustls", "postgres", "offline"] }
 
 mtapp = "0"
@@ -51,8 +41,7 @@ mtapp-user = { path = "./mtapp-user/" }
 mtapp-grant = { path = "./mtapp-grant/" }
 mtapp-session = { path = "./mtapp-session/" }
 
-schemer-migration = { path = "./schemer-migration/" }
-schemer-migration-macros = { path = "./schemer-migration-macros/" }
-
+smig-lib = { path = "../../rust/smig/lib" }
+smig-macros = { path = "../../rust/smig/macros" }
 schemer = { git = "https://github.com/pooyamb/schemer.git", branch = "async" }
 seaqs = { git = "https://github.com/pooyamb/seaqs.git", branch = "main" }

@@ -1,7 +1,7 @@
 use std::{error::Error, fmt};
 
 use axum::http::StatusCode;
-use basteh::StorageError;
+use basteh::BastehError;
 use json_resp::JsonError;
 
 #[derive(Debug, JsonError)]
@@ -23,7 +23,7 @@ pub enum AuthError {
     Configuration,
 
     #[json_error(internal)]
-    StorageError(StorageError),
+    BastehError(BastehError),
 
     #[json_error(internal)]
     DatabaseError(sqlx::Error),
@@ -44,8 +44,8 @@ impl fmt::Display for AuthError {
     }
 }
 
-impl From<StorageError> for AuthError {
-    fn from(err: StorageError) -> Self {
-        AuthError::StorageError(err)
+impl From<BastehError> for AuthError {
+    fn from(err: BastehError) -> Self {
+        AuthError::BastehError(err)
     }
 }

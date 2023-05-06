@@ -1,7 +1,7 @@
 use std::{error::Error, fmt};
 
 use axum::http::StatusCode;
-use basteh::StorageError;
+use basteh::BastehError;
 use json_resp::JsonError;
 
 #[derive(Debug, JsonError)]
@@ -56,8 +56,8 @@ impl From<validator::ValidationErrors> for UserError {
     }
 }
 
-impl From<StorageError> for UserError {
-    fn from(err: StorageError) -> Self {
+impl From<BastehError> for UserError {
+    fn from(err: BastehError) -> Self {
         UserError::Other(Box::new(err))
     }
 }

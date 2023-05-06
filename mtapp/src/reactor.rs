@@ -8,7 +8,7 @@ use axum::{
     http::{Extensions, Request},
     Router,
 };
-use basteh::Storage;
+use basteh::Basteh;
 use clap::{ArgMatches, Command};
 use indexmap::IndexMap;
 use sqlx::PgPool;
@@ -78,7 +78,7 @@ impl<D, S> Reactor<D, S> {
         }
     }
 
-    pub fn storage(self, storage: Storage) -> Reactor<D, Storage> {
+    pub fn storage(self, storage: Basteh) -> Reactor<D, Basteh> {
         Reactor {
             map: self.map,
             cfgs: self.cfgs,
@@ -102,7 +102,7 @@ impl<D, S> Reactor<D, S> {
     }
 }
 
-impl Reactor<PgPool, Storage> {
+impl Reactor<PgPool, Basteh> {
     pub async fn run_migrations(&mut self) {
         crate::migration::run_migrations(self.db.clone(), self.map.values_mut()).await;
     }
@@ -270,7 +270,7 @@ impl Reactor<PgPool, Storage> {
 #[derive(Clone)]
 struct ReactorLayerInner {
     db: PgPool,
-    storage: Storage,
+    storage: Basteh,
     state_fns: Arc<Vec<Box<dyn Fn(&mut Extensions) + Send + Sync>>>,
 }
 

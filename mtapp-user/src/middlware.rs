@@ -2,13 +2,13 @@ use axum::http::Request;
 use axum::middleware::Next;
 use axum::response::IntoResponse;
 use axum::Extension;
-use basteh::Storage;
+use basteh::Basteh;
 use mtapp_auth::{AuthError, Claims};
 
 use crate::errors::UserError;
 
 pub(crate) async fn user_ban_check<B>(
-    storage: Extension<Storage>,
+    storage: Extension<Basteh>,
     claims: Option<Extension<Claims>>,
     request: Request<B>,
     next: Next<B>,

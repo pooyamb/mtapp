@@ -5,7 +5,7 @@ use std::{
 };
 
 use axum::Extension;
-use basteh::Storage;
+use basteh::Basteh;
 use basteh_memory::MemoryBackend;
 use clap::{arg, Command};
 use serde_querystring_axum::{ParseMode, QueryStringConfig};
@@ -123,8 +123,8 @@ async fn get_db(db_url: &str) -> PgPool {
         .expect("Database connection failed")
 }
 
-fn get_storage() -> Storage {
-    Storage::build()
-        .store(MemoryBackend::start_default())
+fn get_storage() -> Basteh {
+    Basteh::build()
+        .provider(MemoryBackend::start_default())
         .finish()
 }
